@@ -2,7 +2,7 @@
 
 /* Recruiters get a desktop layout from 1024px up. Students always get the phone layout. */
 @custom-variant desk {
-  @media (min-width: 64rem) { .is-staff & { @slot; } }
+  @media (min-width: 64rem) { .is-staff:not(:has([data-student])) & { @slot; } }
 }
 
 /* ---------- Tokens. Teal and pink at full strength, slate ink, white panels on a pale teal ground. ---------- */
@@ -220,9 +220,10 @@
 }
 
 @media (min-width: 64rem) {
-  .is-staff .shell { max-width: 72rem; padding-inline: 2rem; }
-  .is-staff .dock { display: none; }
-  .is-staff main { padding-bottom: 4rem; }
+  /* Never on a student screen, even if a recruiter is signed in on the same browser. */
+  .is-staff:not(:has([data-student])) .shell { max-width: 72rem; padding-inline: 2rem; }
+  .is-staff:not(:has([data-student])) .dock { display: none; }
+  .is-staff:not(:has([data-student])) main { padding-bottom: 4rem; }
 }
 
 /* ---------- Motion ---------- */

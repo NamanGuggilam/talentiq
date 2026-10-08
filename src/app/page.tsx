@@ -11,7 +11,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ d
   const [recruiter, candidate, sp] = await Promise.all([getRecruiter(), getCandidate(), searchParams]);
   const view = await getView();
   if (view === "recruiter-phone") redirect(recruiter ? "/recruiter" : "/login");
-  if (recruiter && view !== "student") redirect("/recruiter");
+  if (recruiter && !candidate && view !== "student") redirect("/recruiter");
   return (
     <div className="shell">
       <div className="pagehead band !pb-16 !pt-10">

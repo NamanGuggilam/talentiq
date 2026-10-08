@@ -446,3 +446,36 @@ test("each demo address shows its own version, and tap stays off the desktop lay
   await expect(desk.getByRole("heading", { name: "Receive by tap" })).toBeHidden();
   await expect(desk.getByRole("heading", { name: "My badge" })).toBeVisible();
 });
+
+test("a browser signed in as both a recruiter and a student shows each side its own screens", async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await ctx.newPage();
+  const last = `Both${Date.now().toString(36)}`;
+  await signIn(page, "priya.raman@talentiq.demo");
+  await page.goto("/signup");
+  await page.getByLabel(/^First name/).fill("Kai"); await page.getByLabel(/^Last name/).fill(last); await page.getByLabel("Email", { exact: true }).fill(`kai.${last.toLowerCase()}@campus.example.edu`);
+  await page.getByRole("button", { name: "Create my profile" }).click();
+  await page.getByRole("link", { name: "I saved it, continue" }).click();
+  await expect(page).toHaveURL(/\/line$/);
+
+  // Student screens: student tabs, phone width, no recruiter navigation. This must hold across the page's own refreshes.
+  for (const path of ["/line", "/tap", "/me"]) {
+    await page.goto(path);
+    await page.waitForTimeout(path === "/line" ? 8000 : 500);
+    await expect(page.locator("nav.dock").getByRole("link", { name: "Line" })).toBeVisible();
+    await expect(page.locator("nav.dock").getByRole("link", { name: "People" })).toHaveCount(0);
+    await expect(page.locator("nav.topnav")).toHaveCount(0);
+    expect((await page.locator("main .shell").first().boundingBox())!.width, path).toBeLessThanOrEqual(480);
+  }
+  // Recruiter screens in the same browser: recruiter navigation and the desktop layout.
+  await page.goto("/recruiter");
+  await expect(page.locator("nav.topnav").getByRole("link", { name: "People" })).toBeVisible();
+  expect((await page.locator("main .shell").first().boundingBox())!.width).toBeGreaterThan(1000);
+  // Signing the student out leaves the recruiter signed in, and the reverse.
+  await page.goto("/me");
+  await page.getByLabel("Type DELETE to confirm").fill("DELETE");
+  await page.getByRole("button", { name: "Delete everything" }).click();
+  await page.goto("/recruiter");
+  await expect(page.getByRole("heading", { name: "People", level: 1 })).toBeVisible();
+  await ctx.close();
+});
