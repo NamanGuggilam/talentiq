@@ -14,7 +14,7 @@ export default async function Tap() {
   const called = (await placesFor(me.id)).find((p) => p.status === "called");
   return (
     <div className="shell pb-10">
-      <PageHead title="Tap to share"><p>Tap phones with a recruiter to send your profile and resume, and get their contact card back.</p></PageHead>
+      <PageHead title="Tap to share" />
       <TapShare resumeName={resume?.fileName ?? null} linkCount={Object.keys(me.links ?? {}).length} calledBy={called?.recruiterName} />
     </div>
   );

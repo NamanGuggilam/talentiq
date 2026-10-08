@@ -7,5 +7,5 @@ export default defineConfig({
   timeout: 180_000,
   workers: 1,
   reporter: "list",
-  use: { baseURL: process.env.E2E_URL ?? "http://localhost:3210", viewport: { width: 390, height: 844 }, screenshot: "only-on-failure" },
+  use: { actionTimeout: 15_000, baseURL: process.env.E2E_URL ?? "http://localhost:3210", viewport: { width: 390, height: 844 }, screenshot: "only-on-failure" },
 });

@@ -22,8 +22,7 @@ export default async function Admin() {
 
   return (
     <div className="shell pb-12">
-      <PageHead eyebrow={event ? `${event.name} · ${event.company}` : "No event selected"} title="Admin" actions={<Link href="/admin/study" className="btn btn-primary">Study and measures</Link>}>
-        <p>Set up the people, the tag list and the event before the fair opens.</p>
+      <PageHead eyebrow={event ? `${event.name} · ${event.company}` : "No event selected"} title="Admin" actions={<Link href="/admin/study" className="btn btn-primary">Study</Link>}>
       </PageHead>
 
       <div className="grid gap-5">

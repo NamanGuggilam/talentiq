@@ -30,8 +30,7 @@ export default async function Study() {
 
   return (
     <div className="shell pb-12">
-      <PageHead eyebrow="Traditional process versus TalentIQ" title="Study and measures" actions={<><Link href="/admin" className="btn">Back to admin</Link><a href="/api/study/export" className="btn" download>Export CSV</a></>}>
-        <p>Run each participant through the same task twice, once on paper and once here, with different matched candidate sets. Half start with paper.</p>
+      <PageHead eyebrow="Paper vs TalentIQ" title="Study" actions={<><Link href="/admin" className="btn">Back to admin</Link><a href="/api/study/export" className="btn" download>Export CSV</a></>}>
       </PageHead>
 
       <section aria-labelledby="live" className="mb-8">

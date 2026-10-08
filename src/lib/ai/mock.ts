@@ -58,9 +58,9 @@ export function mockCheckClaims(claims: ClaimDraft[], evidence: EvidenceInput[])
     if (c.type === "skill") {
       for (const e of usable) {
         const line = e.facts.lines.find((l) => hasSkill(l, c.text));
-        if (line) return { status: "verified", sourceId: e.sourceId, evidenceQuote: line, explanation: `${c.text} appears on the linked ${e.kind} page.`, suggestedQuestion: null };
+        if (line) return { status: "verified", sourceId: e.sourceId, evidenceQuote: line, explanation: e.kind === "file" ? `${c.text} appears in the uploaded file ${e.url}.` : `${c.text} appears on the linked ${e.kind} page.`, suggestedQuestion: null };
       }
-      return { status: "not_found", sourceId: null, evidenceQuote: null, explanation: `The linked pages do not mention ${c.text}.`, suggestedQuestion: null };
+      return { status: "not_found", sourceId: null, evidenceQuote: null, explanation: `The shared links and files do not mention ${c.text}.`, suggestedQuestion: null };
     }
 
     const want = content(c.text);
@@ -70,7 +70,7 @@ export function mockCheckClaims(claims: ClaimDraft[], evidence: EvidenceInput[])
       const score = want.filter((w) => have.has(w)).length / Math.max(want.length, 1);
       if (!best || score > best.score) best = { e, line, score };
     }
-    if (!best || best.score < 0.34) return { status: "not_found", sourceId: null, evidenceQuote: null, explanation: "Nothing on the linked pages matches this claim.", suggestedQuestion: `Can you tell me more about this: "${c.text}"?` };
+    if (!best || best.score < 0.34) return { status: "not_found", sourceId: null, evidenceQuote: null, explanation: "Nothing in the shared links or files matches this claim.", suggestedQuestion: `Can you tell me more about this: "${c.text}"?` };
 
     const claimed = placement(c.text), found = placement(best.line);
     if (claimed && found && claimed !== found) {
@@ -80,7 +80,7 @@ export function mockCheckClaims(claims: ClaimDraft[], evidence: EvidenceInput[])
     if (claimsLead || best.score < 0.6) {
       return { status: "partial", sourceId: best.e.sourceId, evidenceQuote: best.line, explanation: claimsLead ? "The linked page confirms the project but does not say who led it." : "The linked page supports part of this claim.", suggestedQuestion: claimsLead ? "Which part of this did you own, and how was the work split?" : `What was your own contribution to this: "${c.text}"?` };
     }
-    return { status: "verified", sourceId: best.e.sourceId, evidenceQuote: best.line, explanation: "The linked page states the same thing.", suggestedQuestion: null };
+    return { status: "verified", sourceId: best.e.sourceId, evidenceQuote: best.line, explanation: "The source states the same thing.", suggestedQuestion: null };
   });
 }
 

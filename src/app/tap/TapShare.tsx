@@ -86,7 +86,7 @@ export function TapShare({ resumeName, linkCount, calledBy }: { resumeName: stri
       <div className="card p-5 text-center">
         <TapStage live={phase !== "idle" && phase !== "matched"} />
         <p role="status" aria-live="polite" className="min-h-12 text-[1.0625rem] font-semibold">
-          {phase === "idle" && "Bring your phone to the recruiter's and tap them together."}
+          {phase === "idle" && "Tap your phone on the recruiter's."}
           {phase === "armed" && (calledBy ? `${calledBy} is ready for you. Tap your phone against theirs.` : "Ready. Tap your phone against the recruiter's.")}
           {phase === "searching" && "Looking for the other phone…"}
           {phase === "matched" && (matches.length > 1 ? "More than one recruiter tapped just now. Pick yours." : "Found them.")}
@@ -97,13 +97,13 @@ export function TapShare({ resumeName, linkCount, calledBy }: { resumeName: stri
         ) : phase !== "matched" && (
           <button type="button" className="btn mt-3 w-full !min-h-12" disabled={phase === "searching"} onClick={async () => { void requestMotion().then(setMotion); await fire(); }}>{phase === "searching" && <span className="spinner" />}Tap now</button>
         )}
-        {phase !== "idle" && phase !== "matched" && <p className="hint mt-2">{motion ? "If the bump is not picked up, both of you can press Tap now at the same moment." : "This phone did not allow motion sensing. Both of you press Tap now at the same moment."}</p>}
+        {phase !== "idle" && phase !== "matched" && <p className="hint mt-2">{motion ? "No bump? Both press Tap now together." : "No motion sensor. Both press Tap now together."}</p>}
       </div>
 
       {phase === "matched" && matches.map((m) => <ShareCard key={m.token} match={m} onShared={setShared} />)}
       {phase === "matched" && <button type="button" className="btn btn-quiet" onClick={() => { setMatches([]); setPhase("armed"); }}>Not them, try again</button>}
 
-      <p className="hint text-center">Nothing is sent until you press Share. You can also scan the QR code on a recruiter&apos;s badge.</p>
+      <p className="hint text-center">Nothing is sent until you press Share.</p>
     </div>
   );
 }

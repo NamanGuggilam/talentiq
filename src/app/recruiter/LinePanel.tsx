@@ -46,18 +46,18 @@ export async function LinePanel({ me }: { me: Recruiter }) {
           <p className="eyebrow">With you now</p>
           {called ? (
             <>
-              <p className="mt-1 text-xl font-bold">{nameOf(called)}</p>
+              <p className="mt-1 font-display text-3xl font-bold uppercase italic leading-none">{nameOf(called)}</p>
               <p className="text-sm text-muted">{called.major ?? "On their way to you"}</p>
 
               {/* Calling someone turns tap on. Tap lives in the phone layouts only. */}
               <div className="desk:hidden"><TapReceiver key={called.id} initialCount={connections} auto bare expecting={nameOf(called).split(" ")[0]} /></div>
-              <p className="mt-3 hidden text-[0.9375rem] text-ink-2 desk:block">Tap phones with {nameOf(called).split(" ")[0]} using the phone version, or start without it. Their record opens here either way.</p>
+              
 
               <div className="mt-3 grid gap-2">
                 <form action={startWithoutTap}><input type="hidden" name="id" value={called.id} /><SubmitButton className="btn w-full !min-h-12">Start without tap</SubmitButton></form>
                 <form action={resolveEntry}><input type="hidden" name="id" value={called.id} /><input type="hidden" name="to" value="skipped" /><SubmitButton className="btn btn-quiet w-full">Did not show up</SubmitButton></form>
               </div>
-              <p className="hint mt-2">Start without tap opens their profile so you can add notes and ratings. They are saved to your list and to Review.</p>
+              
             </>
           ) : (
             <>
@@ -71,7 +71,7 @@ export async function LinePanel({ me }: { me: Recruiter }) {
 
         <div className="min-w-0 rounded-[var(--radius-md)] bg-raised p-4">
           <p className="eyebrow">Up next</p>
-          {waiting.length === 0 ? <p className="mt-1 text-ink-2">The line is empty. Students join by scanning your badge.</p> : (
+          {waiting.length === 0 ? <p className="mt-1 text-ink-2">Empty.</p> : (
             <ol className="mt-1 grid gap-1.5">
               {waiting.slice(0, 6).map((e, i) => (
                 <li key={e.id} className="flex items-center gap-3">

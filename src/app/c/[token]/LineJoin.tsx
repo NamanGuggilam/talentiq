@@ -12,7 +12,7 @@ export function LineJoin({ token, recruiterName, waiting, minutes, open, inLine 
     return (
       <div role="status" className="text-center">
         <p className="text-lg font-semibold">You are in {first}&apos;s line.</p>
-        <p className="mt-1 text-sm text-muted">Go and see other booths. We will tell you when it is your turn.</p>
+        
         <Link href="/line" className="btn btn-primary mt-4 w-full !min-h-12">See my place in line</Link>
       </div>
     );

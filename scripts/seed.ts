@@ -133,7 +133,7 @@ async function main() {
   const reset = process.argv.includes("--reset");
   const [{ n }] = await db.select({ n: sql<number>`count(*)::int` }).from(schema.events);
   if (n > 0 && !reset) { console.log("Database already has data. Run `npm run seed -- --reset` to wipe and reseed."); return; }
-  if (reset) await db.execute(sql`truncate table queue_entries, taps, metrics_events, study_sessions, summaries, observations, claims, evidence_sources, connections, resumes, sessions, tags, mock_profiles, rate_limits, candidates, recruiters, events cascade`);
+  if (reset) await db.execute(sql`truncate table documents, queue_entries, taps, metrics_events, study_sessions, summaries, observations, claims, evidence_sources, connections, resumes, sessions, tags, mock_profiles, rate_limits, candidates, recruiters, events cascade`);
 
   const [event] = await db.insert(schema.events).values({ name: "Fall Engineering Career Fair (synthetic)", company: "J.B. Hunt", startsAt: new Date() }).returning();
   const staffSpec = [

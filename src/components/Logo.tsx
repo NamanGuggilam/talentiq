@@ -1,26 +1,40 @@
 /**
- * The TalentIQ mark is a Q: a ring (the conversation), a dot at its centre (the candidate) and a tail that leaves
- * the ring (the hand-off to a human decision). On load the ring draws, the dot lands and the tail extends.
- * `tone="light"` is for use on the teal brand colour.
+ * The TalentIQ mark: a ring with two tails and two pink ties. It reads as a Q, and as twin tails.
+ * On load the ring draws, the ties land and the tails fall. `tone="light"` is for use on the teal band.
  */
-export function Mark({ size = 28, live = false, tone = "brand", className = "" }: { size?: number; live?: boolean; tone?: "brand" | "light"; className?: string }) {
-  const ring = tone === "light" ? "#ffffff" : "#39c5bb";
+export function Mark({ size = 28, tone = "brand", className = "" }: { size?: number; tone?: "brand" | "light"; className?: string }) {
+  const c = tone === "light" ? "#ffffff" : "#39c5bb";
   return (
-    <svg className={`mark ${className}`} data-live={live ? "" : undefined} width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden="true" focusable="false">
-      <circle className="m-ripple" cx="30" cy="30" r="19" stroke="#e12885" strokeWidth="2" />
-      <circle className="m-ring" cx="30" cy="30" r="19" stroke={ring} strokeWidth="8" transform="rotate(45 30 30)" />
-      <path className="m-tail" d="M44 44 56 56" stroke={ring} strokeWidth="8" strokeLinecap="round" />
-      <circle className="m-dot" cx="30" cy="30" r="6" fill="#e12885" />
-      <g className="m-orbit"><circle cx="30" cy="11" r="3" fill="#e12885" /></g>
+    <svg className={`mark ${className}`} width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden="true" focusable="false">
+      <path className="m-tail" d="M16 27C8 36 11 48 6 60" stroke={c} strokeWidth="6" strokeLinecap="round" />
+      <path className="m-tail" d="M48 27c8 9 5 21 10 33" stroke={c} strokeWidth="6" strokeLinecap="round" />
+      <circle className="m-ring" cx="32" cy="24" r="14" stroke={c} strokeWidth="7" />
+      <rect className="m-tie l" x="13" y="18" width="8" height="8" fill="#e12885" transform="rotate(20 17 22)" />
+      <rect className="m-tie r" x="43" y="18" width="8" height="8" fill="#e12885" transform="rotate(-20 47 22)" />
     </svg>
   );
 }
 
 export function Wordmark({ size = 28 }: { size?: number }) {
   return (
-    <span className="inline-flex items-center gap-2 text-ink">
+    <span className="inline-flex items-center gap-1.5 text-ink">
       <Mark size={size} />
-      <span className="font-display font-bold tracking-tight" style={{ fontSize: size * 0.7, lineHeight: 1 }}>TalentIQ</span>
+      <span className="font-display font-bold italic uppercase tracking-tight" style={{ fontSize: size * 0.72, lineHeight: 1 }}>Talent<span className="text-pink-deep">IQ</span></span>
     </span>
   );
+}
+
+/** Two long ribbons that hang in the corner of a page band and sway slightly. Decoration only. */
+export function Ribbons({ className = "" }: { className?: string }) {
+  return (
+    <svg className={`ribbons ${className}`} viewBox="0 0 140 200" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <path d="M52 -4C14 58 86 112 34 204h26C112 112 46 58 82 -4Z" fill="#0a6a6d" opacity="0.5" />
+      <path d="M98 -4C70 50 128 104 92 204h20C150 104 96 50 122 -4Z" fill="#e12885" />
+    </svg>
+  );
+}
+
+/** Animated sound bars. */
+export function Eq({ className = "" }: { className?: string }) {
+  return <span className={`eq ${className}`} aria-hidden="true"><i /><i /><i /><i /><i /></span>;
 }

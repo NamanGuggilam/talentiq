@@ -1,4 +1,5 @@
 import type { ClaimStatus, RecordStatus } from "@/db/schema";
+import { Ribbons } from "./Logo";
 
 type Tone = "ok" | "warn" | "bad" | "accent" | "outline" | undefined;
 
@@ -20,10 +21,11 @@ export const SummaryPill = ({ state }: { state: SummaryState }) => <Pill tone={S
 
 export function PageHead({ eyebrow, title, children, actions }: { eyebrow?: string; title: string; children?: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <div className="pb-5 pt-5">
+    <div className="pagehead">
+      <Ribbons />
       {eyebrow && <p className="eyebrow mb-1">{eyebrow}</p>}
-      <h1 className="text-[2rem] font-bold leading-tight">{title}</h1>
-      {children && <div className="mt-1.5 text-[0.9375rem] leading-relaxed text-ink-2">{children}</div>}
+      <h1>{title}</h1>
+      {children && <div className="mt-2 max-w-[19rem] text-[0.9375rem] font-bold leading-snug">{children}</div>}
       {actions && <div className="mt-4 flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
@@ -51,7 +53,7 @@ export function Notice({ tone, children, role = "status" }: { tone?: "ok" | "bad
 export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <div className="card px-6 py-10 text-center">
-      <p className="font-display text-xl font-semibold">{title}</p>
+      <p className="font-display text-xl font-bold italic uppercase">{title}</p>
       {children && <div className="mx-auto mt-2 max-w-md text-muted">{children}</div>}
     </div>
   );

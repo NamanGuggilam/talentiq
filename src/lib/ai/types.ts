@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ClaimStatus, ExtractedFacts, LinkKind, RejectedStatement, SummaryDraft } from "@/db/schema";
+import type { ClaimStatus, ExtractedFacts, RejectedStatement, SourceKind, SummaryDraft } from "@/db/schema";
 
 export const ParsedResumeSchema = z.object({
   firstName: z.string(), lastName: z.string(), email: z.string(), phone: z.string(),
@@ -12,7 +12,7 @@ export const CLAIM_TYPES = ["skill", "project", "award", "certification", "exper
 export const ClaimDraftSchema = z.object({ type: z.enum(CLAIM_TYPES), text: z.string(), resumeQuote: z.string() });
 export type ClaimDraft = z.infer<typeof ClaimDraftSchema>;
 
-export type EvidenceInput = { sourceId: string; kind: LinkKind; url: string; facts: ExtractedFacts };
+export type EvidenceInput = { sourceId: string; kind: SourceKind; url: string; facts: ExtractedFacts };
 export type ClaimCheck = { status: ClaimStatus; sourceId: string | null; evidenceQuote: string | null; explanation: string; suggestedQuestion: string | null };
 export type FoundExtra = { type: ClaimDraft["type"]; text: string; sourceId: string; evidenceQuote: string };
 

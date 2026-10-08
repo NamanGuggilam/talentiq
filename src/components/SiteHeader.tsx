@@ -24,11 +24,11 @@ export async function SiteHeader() {
       : [];
   return (
     <>
-      <header className="glass no-print sticky top-0 z-40 !border-x-0 !border-t-0">
+      <header className="glass no-print sticky top-0 z-40 border-b-[3px] border-ink">
         <div className="shell flex min-h-13 items-center gap-3 py-2">
           <Link href={home} className="rounded-md py-1" aria-label="TalentIQ home"><Wordmark size={24} /></Link>
           {recruiter && <TopNav items={dock} />}
-          <span className="pill ml-auto" title="Every candidate in this prototype is made up">Demo data</span>
+          <span className="pill ml-auto" title="Every candidate in this prototype is made up">Demo</span>
           {recruiter ? (
             <form action={logout}><button className="btn btn-quiet btn-sm">Sign out</button></form>
           ) : candidate ? (
@@ -38,7 +38,7 @@ export async function SiteHeader() {
           )}
         </div>
       </header>
-      {dock.length > 0 && <Dock items={dock} />}
+      {dock.length > 0 && <Dock items={dock.filter((d) => d.href !== "/account")} />}
     </>
   );
 }

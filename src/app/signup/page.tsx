@@ -14,8 +14,8 @@ export default async function Signup({ searchParams }: { searchParams: Promise<{
   const existing = !!(await getCandidate());
   return (
     <div className="shell pb-10">
-      <PageHead eyebrow="Students · about two minutes" title="Create your profile">
-        <p>Start with your resume and we fill in the form. You can edit everything before saving. Already have one? <Link className="link" href={`/find?next=${encodeURIComponent(next)}`}>Find my profile</Link>.</p>
+      <PageHead eyebrow="2 minutes" title="Your profile">
+        <p>Have one already? <Link className="link" href={`/find?next=${encodeURIComponent(next)}`}>Find my profile</Link>.</p>
       </PageHead>
       <ProfileForm mode="create" next={next} existing={existing} />
     </div>

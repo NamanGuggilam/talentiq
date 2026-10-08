@@ -5,6 +5,7 @@ import { CaptureForm } from "./CaptureForm";
 import { EvidenceTab } from "./EvidenceTab";
 import { SummaryEditor } from "./SummaryEditor";
 import { generateSummary } from "@/app/actions/recruiter";
+import { Ribbons } from "@/components/Logo";
 import { Refresher } from "@/components/Refresher";
 import { StatusSelect } from "@/components/StatusSelect";
 import { SubmitButton } from "@/components/SubmitButton";
@@ -46,12 +47,13 @@ export default async function CandidatePage({ params, searchParams }: { params: 
 
   return (
     <div className="shell pb-12">
-      <div className="pb-4 pt-6">
-        <Link href={isOwner ? "/recruiter" : "/dashboard"} className="link text-sm">← {isOwner ? "People I met" : "Review"}</Link>
+      <div className="pagehead">
+        <Ribbons />
+        <Link href={isOwner ? "/recruiter" : "/dashboard"} className="link text-sm">← {isOwner ? "People" : "Review"}</Link>
         <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-3xl font-bold leading-tight">{displayName(c)}</h1>
-            <p className="mt-1 text-ink-2">{[c.degreeProgram, c.major].filter(Boolean).join(" ")}{c.university ? ` · ${c.university}` : ""}{c.graduationDate ? ` · ${c.graduationDate}` : ""}</p>
+            <h1>{displayName(c)}</h1>
+            <p className="mt-1 font-bold">{[c.degreeProgram, c.major].filter(Boolean).join(" ")}{c.university ? ` · ${c.university}` : ""}{c.graduationDate ? ` · ${c.graduationDate}` : ""}</p>
             <p className="eyebrow mt-2">Met {owner.name} · {fmtDate(conn.consentedAt)}{also.length > 0 && <> · also met {also.map((o, i) => <span key={o.connectionId}>{i > 0 && ", "}<Link className="underline" href={`/recruiter/c/${o.connectionId}`}>{o.name}</Link></span>)}</>}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

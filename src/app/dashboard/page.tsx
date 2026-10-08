@@ -24,9 +24,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
   return (
     <div className="shell pb-12">
-      <PageHead eyebrow={`${total} conversations at this event`} title="Review">
-        <p>Everyone the team met. Search, filter, compare side by side, then set a status. The order is always one you chose.</p>
-      </PageHead>
+      <PageHead eyebrow={`${total} conversations`} title="Review" />
 
       <div className="grid gap-4">
         {sp.notice === "norank" && <Notice tone="warn" role="alert"><span><span className="font-semibold">TalentIQ does not rank candidates.</span> Try searching by skill, major, location, tag or status instead{sp.asked ? <>. You asked: “{sp.asked}”</> : ""}.</span></Notice>}
@@ -40,23 +38,17 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               <input id="ask" name="ask" maxLength={240} defaultValue={sp.asked ?? ""} placeholder="Data science majors graduating 2027 who know SQL" className="input" aria-describedby="ask-hint" />
             </div>
             <SubmitButton className="btn btn-ink">Find</SubmitButton>
-            <p id="ask-hint" className="hint">Searches profiles, tags and approved summaries. It will not answer “who is best”.</p>
+            <p id="ask-hint" className="hint">It will not answer “who is best”.</p>
           </form>
 
           <details className="mt-4 border-t border-line pt-3" open={active.length > 0 || !!sp.sort}>
             <summary className="flex items-center justify-between gap-2 py-1 font-semibold">Filters and order<span className="pill" data-tone={active.length ? "accent" : undefined}>{active.length ? `${active.length} on` : "None"}</span></summary>
             <div className="mt-3">
 
-          <form className="grid gap-3 desk:grid-cols-4" aria-label="Filters">
+          <form className="grid gap-3 desk:grid-cols-[2fr_1fr_1fr_1fr_auto] desk:items-end" aria-label="Filters">
             <div className="field"><label htmlFor="q" className="eyebrow">Keywords</label><input id="q" name="q" defaultValue={sp.q ?? ""} placeholder="Python Dallas" className={sel} /></div>
             <div className="field"><label htmlFor="status" className="eyebrow">Status</label><select id="status" name="status" defaultValue={sp.status ?? ""} className={sel}><option value="">Any</option>{RECORD_STATUSES.map((s) => <option key={s}>{s}</option>)}</select></div>
-            <div className="field"><label htmlFor="summary" className="eyebrow">Summary</label><select id="summary" name="summary" defaultValue={sp.summary ?? ""} className={sel}><option value="">Any</option><option value="none">No draft</option><option value="draft">Draft</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select></div>
-            <div className="field"><label htmlFor="recruiter" className="eyebrow">Recruiter</label><select id="recruiter" name="recruiter" defaultValue={sp.recruiter ?? ""} className={sel}><option value="">Anyone</option>{options.recruiters.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</select></div>
-            <div className="field"><label htmlFor="university" className="eyebrow">University</label><select id="university" name="university" defaultValue={sp.university ?? ""} className={sel}><option value="">Any</option>{options.universities.map((u) => <option key={u}>{u}</option>)}</select></div>
-            <div className="field"><label htmlFor="major" className="eyebrow">Major</label><select id="major" name="major" defaultValue={sp.major ?? ""} className={sel}><option value="">Any</option>{options.majors.map((u) => <option key={u}>{u}</option>)}</select></div>
-            <div className="field"><label htmlFor="grad" className="eyebrow">Graduation year</label><select id="grad" name="grad" defaultValue={sp.grad ?? ""} className={sel}><option value="">Any</option>{options.grads.map((u) => <option key={u}>{u}</option>)}</select></div>
             <div className="field"><label htmlFor="tag" className="eyebrow">Tag</label><select id="tag" name="tag" defaultValue={sp.tag ?? ""} className={sel}><option value="">Any</option>{options.tags.map((u) => <option key={u}>{u}</option>)}</select></div>
-            <div className="field"><label htmlFor="auth" className="eyebrow">Work authorization</label><select id="auth" name="auth" defaultValue={sp.auth ?? ""} className={sel}><option value="">Any</option><option value="yes">Provided</option><option value="no">Not provided</option></select></div>
             <div className="field"><label htmlFor="sort" className="eyebrow">Order by</label><select id="sort" name="sort" defaultValue={sp.sort ?? "met"} className={sel}>{Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
             <div className="flex items-end gap-2"><button className="btn !min-h-10">Apply</button>{(active.length > 0 || sp.sort) && <Link href="/dashboard" className="btn btn-quiet !min-h-10">Clear</Link>}</div>
           </form>

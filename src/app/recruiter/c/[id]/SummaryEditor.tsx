@@ -175,7 +175,7 @@ export function SummaryEditor({ connectionId, canEdit, initial, rejected, approv
                 <h3 className="flex items-center justify-between gap-2 text-xs"><span>[{label}] {title}</span>{cited && <span className="pill" data-tone="accent" data-plain="">Cited</span>}</h3>
                 {key === "linked" && evidence.length > 0 ? (
                   <ul className="mt-2 grid gap-2 text-sm text-ink-2">
-                    {evidence.map((e, i) => <li key={i}><span className="font-medium text-ink">{renderSource("linked", e.text)}</span>: “{renderSource("linked", e.quote)}” <a className="link" href={e.url} target={e.url.startsWith("/") ? undefined : "_blank"} rel="noreferrer noopener">page</a></li>)}
+                    {evidence.map((e, i) => <li key={i}><span className="font-medium text-ink">{renderSource("linked", e.text)}</span>: “{renderSource("linked", e.quote)}” {e.url ? <a className="link" href={e.url} target={e.url.startsWith("/") ? undefined : "_blank"} rel="noreferrer noopener">page</a> : <span className="text-muted">(uploaded file)</span>}</li>)}
                   </ul>
                 ) : text ? (
                   <p tabIndex={0} className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-ink-2">{renderSource(key, key === "candidate" || key === "notes" ? text.replace(/ \. /g, "\n") : text)}</p>

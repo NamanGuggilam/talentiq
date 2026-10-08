@@ -12,9 +12,7 @@ export default async function Find({ searchParams }: { searchParams: Promise<{ n
   if (await getCandidate()) redirect(next);
   return (
     <div className="shell pb-10">
-      <PageHead eyebrow="Students" title="Find my profile">
-        <p>Use the recovery code you saved when you created your profile.</p>
-      </PageHead>
+      <PageHead eyebrow="Students" title="Find my profile" />
       <FindForm next={next} />
       <p className="mt-6 text-sm text-muted">No profile yet? <Link className="link" href={`/signup?next=${encodeURIComponent(next)}`}>Create one</Link>. Lost your code? Create a new profile with a different email.</p>
     </div>

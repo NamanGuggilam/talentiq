@@ -1,6 +1,6 @@
 import { recheckEvidence, toggleClaim } from "@/app/actions/recruiter";
 import { SubmitButton } from "@/components/SubmitButton";
-import { ClaimPill, Empty, Pill, fmtDate } from "@/components/ui";
+import { ClaimPill, Empty, Pill } from "@/components/ui";
 import type { schema } from "@/db";
 import { LINK_LABEL } from "@/lib/scrape/sources";
 
@@ -24,7 +24,7 @@ function ClaimRow({ claim, source, connectionId, canEdit }: { claim: Claim; sour
           <figure className="mt-3 border-l-2 border-line-strong pl-3">
             <blockquote className="text-[0.9375rem] text-ink-2">“{claim.evidenceQuote}”</blockquote>
             <figcaption className="eyebrow mt-1">
-              {LINK_LABEL[source.kind]} · <a className="underline" href={source.url} target={source.url.startsWith("/") ? undefined : "_blank"} rel="noreferrer noopener">{source.url.replace(/^https:\/\//, "")}</a> · read {fmtDate(source.fetchedAt)}
+              {LINK_LABEL[source.kind]} · {source.kind === "file" ? source.url : <a className="underline" href={source.url} target={source.url.startsWith("/") ? undefined : "_blank"} rel="noreferrer noopener">{source.url.replace(/^https:\/\//, "")}</a>}
             </figcaption>
           </figure>
         )}
@@ -57,9 +57,7 @@ export function EvidenceTab({ connectionId, candidate, claims, sources, canEdit 
         <div className="max-w-2xl">
           <h2 id="ev-how" className="text-xl font-semibold">Differences are things to ask about, not reasons to reject.</h2>
           <p className="mt-1 text-ink-2">
-            {!links ? "This student did not add any links, so nothing was read. Every claim stays unchecked."
-              : !candidate.scrapeConsentAt ? "This student added links but did not allow them to be read. Every claim stays unchecked."
-              : "TalentIQ read only the pages this student linked and compared them with the resume. Each claim has a label and the exact line it rests on."}
+            {sources.length ? "Checked against the links and files this student shared." : !links ? "No links or files were shared, so nothing was checked." : "Links were added but not allowed to be read."}
           </p>
           {sources.length > 0 && (
             <ul className="mt-3 flex flex-wrap gap-1.5">
@@ -102,7 +100,7 @@ export function EvidenceTab({ connectionId, candidate, claims, sources, canEdit 
                   </div>
                   {c.evidenceQuote && <p className="mt-1 text-sm text-ink-2">“{c.evidenceQuote}”</p>}
                   <div className="mt-2 flex items-center justify-between gap-2">
-                    {s && <a className="eyebrow underline" href={s.url} target={s.url.startsWith("/") ? undefined : "_blank"} rel="noreferrer noopener">{LINK_LABEL[s.kind]}</a>}
+                    {s && (s.kind === "file" ? <span className="eyebrow">{s.url}</span> : <a className="eyebrow underline" href={s.url} target={s.url.startsWith("/") ? undefined : "_blank"} rel="noreferrer noopener">{LINK_LABEL[s.kind]}</a>)}
                     {canEdit && (
                       <form action={toggleClaim}>
                         <input type="hidden" name="connectionId" value={connectionId} />

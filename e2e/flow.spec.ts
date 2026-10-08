@@ -59,13 +59,15 @@ test("check-in through recruiter-approved follow-up status", async ({ browser })
   await axe(s, "connect, signed out");
   await s.getByRole("link", { name: "Create my profile" }).click();
   await expect(s).toHaveURL(/\/signup\?next=/);
-  await s.getByLabel(/Resume file/).setInputFiles({ name: "quinn-resume.txt", mimeType: "text/plain", buffer: Buffer.from(RESUME) });
+  await s.getByLabel("Resume", { exact: true }).setInputFiles({ name: "quinn-resume.txt", mimeType: "text/plain", buffer: Buffer.from(RESUME) });
   await expect(s.getByText("Resume read.")).toBeVisible({ timeout: 30_000 });
-  await expect(s.getByLabel("University")).toHaveValue("University of Arkansas");
+  // The rest of the profile is read from the resume; the student only sees what was found.
+  await expect(s.getByLabel("Read from your resume").getByText("University of Arkansas")).toBeVisible();
+  await s.getByLabel(/^Other files/).setInputFiles({ name: "hack-night-certificate.txt", mimeType: "text/plain", buffer: Buffer.from("Certificate of achievement\nCampus Hack Night 2024: 2nd place, awarded to Quinn Testerson\n") });
   await s.getByLabel(/^First name/).fill(student.first);
   await s.getByLabel(/^Last name/).fill(student.last);
-  await s.getByLabel(/^Email address/).fill(student.email);
-  await s.getByLabel("Internship or job function").fill("Software Engineering Intern");
+  await s.getByLabel("Email", { exact: true }).fill(student.email);
+  await s.getByLabel("What do you want to talk about?").fill("Software Engineering Intern");
   await axe(s, "signup");
   await shot(s, "signup-mobile");
   await s.getByRole("button", { name: "Create my profile" }).click();
@@ -96,8 +98,7 @@ test("check-in through recruiter-approved follow-up status", async ({ browser })
   // Capture: tags, notes, the recruiter's own ratings.
   await expect(r).toHaveURL(/\/recruiter\/c\//);
   await r.getByRole("checkbox", { name: "Software", exact: true }).check({ force: true });
-  await r.getByLabel("Areas of interest discussed").fill("Routing engine team, summer internship");
-  await r.getByLabel("Notes", { exact: true }).fill("Walked through the shipment tracking dashboard. Seemed really passionate, probably a strong leader. I think they know AWS.");
+  await r.getByRole("textbox", { name: "Notes", exact: true }).fill("Walked through the shipment tracking dashboard. Seemed really passionate, probably a strong leader. I think they know AWS.");
   await r.getByLabel("Communication: 4 out of 5").check({ force: true });
   await r.getByLabel("Technical depth: 3 out of 5").check({ force: true });
   await expect(r.getByText("Saved", { exact: true })).toBeVisible({ timeout: 10_000 });
@@ -123,7 +124,10 @@ test("check-in through recruiter-approved follow-up status", async ({ browser })
 
   await r.getByRole("link", { name: "Evidence" }).click();
   await expect(r.getByText("Differences are things to ask about, not reasons to reject.")).toBeVisible();
-  await axe(r, "evidence, nothing linked");
+  // The certificate uploaded next to the resume backs up the award claim.
+  await expect(r.getByText(/Uploaded file · hack-night-certificate.txt/).first()).toBeVisible({ timeout: 30_000 });
+  await axe(r, "evidence from an uploaded file");
+  await shot(r, "evidence-file");
 
   await r.getByLabel("Status", { exact: true }).selectOption("Interview Requested");
   await r.reload();
@@ -162,7 +166,7 @@ test("check-in through recruiter-approved follow-up status", async ({ browser })
   await shot(s, "me-mobile");
   await s.getByLabel("Type DELETE to confirm").fill("delete");
   await s.getByRole("button", { name: "Delete everything" }).click();
-  await expect(s.getByText("has been deleted")).toBeVisible();
+  await expect(s.getByText("Profile deleted.")).toBeVisible();
   await r.goto("/recruiter");
   await expect(r.getByRole("link", { name: `${student.first} ${student.last}` })).toHaveCount(0);
 
@@ -228,7 +232,7 @@ test("coordinator pages work and pass accessibility checks", async ({ page }) =>
   await axe(page, "admin");
   await shot(page, "admin");
   await page.goto("/admin/study");
-  await expect(page.getByRole("heading", { name: "Study and measures" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Study", exact: true })).toBeVisible();
   await axe(page, "study");
   await shot(page, "study");
   expect((await page.request.get("/api/study/export")).status()).toBe(200);
@@ -244,7 +248,7 @@ test("two phones tap to exchange a profile and a contact card", async ({ browser
   await s.goto("/signup");
   await s.getByLabel(/^First name/).fill("Rin");
   await s.getByLabel(/^Last name/).fill(last);
-  await s.getByLabel(/^Email address/).fill(`rin.${last.toLowerCase()}@campus.example.edu`);
+  await s.getByLabel("Email", { exact: true }).fill(`rin.${last.toLowerCase()}@campus.example.edu`);
   await s.getByRole("button", { name: "Create my profile" }).click();
   await s.getByRole("link", { name: "I saved it, continue" }).click();
   await s.goto("/tap");
@@ -328,9 +332,8 @@ test("a student is matched to a line by interest, called, and tapped in; nobody 
   await s.goto("/signup");
   await s.getByLabel(/^First name/).fill("Len");
   await s.getByLabel(/^Last name/).fill(last);
-  await s.getByLabel(/^Email address/).fill(`len.${last.toLowerCase()}@campus.example.edu`);
-  await s.getByLabel("Internship or job function").fill("Software Engineering Intern");
-  await s.getByLabel("Areas of technical interest").fill("Routing, backend services");
+  await s.getByLabel("Email", { exact: true }).fill(`len.${last.toLowerCase()}@campus.example.edu`);
+  await s.getByLabel("What do you want to talk about?").fill("Software engineering, routing");
   await s.getByRole("button", { name: "Create my profile" }).click();
   await expect(s.getByText("You are in Sam Ortiz's line")).toBeVisible();
   await shot(s, "line-placed");
@@ -354,12 +357,12 @@ test("a student is matched to a line by interest, called, and tapped in; nobody 
   await r.getByRole("button", { name: "Call next" }).click();
   await expect(r.getByRole("button", { name: "Call next" })).toHaveCount(0); // nobody else can be called over them
   await expect(s.getByText(/Number 3 in line/)).toBeVisible({ timeout: 15_000 });
-  const firstName = (await r.locator("section[aria-labelledby='line-h'] p.text-xl").innerText()).trim();
+  const firstName = ((await r.locator("section[aria-labelledby='line-h'] p.text-3xl").textContent()) ?? "").trim();
   await shot(r, "line-called-recruiter");
   await r.getByRole("button", { name: "Start without tap" }).click();
   await expect(r).toHaveURL(/\/recruiter\/c\//);
   await expect(r.getByRole("heading", { name: firstName, level: 1 })).toBeVisible();
-  await r.getByLabel("Notes", { exact: true }).fill("Came from the line. Talked about the load board prototype.");
+  await r.getByRole("textbox", { name: "Notes", exact: true }).fill("Came from the line. Talked about the load board prototype.");
   await r.getByLabel("Interest in the role: 5 out of 5").check({ force: true });
   await expect(r.getByText("Saved", { exact: true })).toBeVisible({ timeout: 10_000 });
   await r.goto("/recruiter");
@@ -368,7 +371,7 @@ test("a student is matched to a line by interest, called, and tapped in; nobody 
 
   // Second person does not show up: they move to Missed, and can be put back.
   await r.getByRole("button", { name: "Call next" }).click();
-  const missedName = (await r.locator("section[aria-labelledby='line-h'] p.text-xl").innerText()).trim();
+  const missedName = ((await r.locator("section[aria-labelledby='line-h'] p.text-3xl").textContent()) ?? "").trim();
   await r.getByRole("button", { name: "Did not show up" }).click();
   await expect(r.getByText("Missed")).toBeVisible();
   await expect(r.getByRole("button", { name: "Put back in line" })).toBeVisible();
@@ -379,7 +382,7 @@ test("a student is matched to a line by interest, called, and tapped in; nobody 
   await expect(r).toHaveURL(/\/recruiter\/c\//);
   await r.goto("/recruiter");
   await r.getByRole("button", { name: "Call next" }).click();
-  await expect(r.locator("section[aria-labelledby='line-h'] p.text-xl")).toHaveText(`Len ${last}`);
+  await expect(r.locator("section[aria-labelledby='line-h'] p.text-3xl")).toHaveText(`Len ${last}`);
 
   // Calling turns tap on for both of them: the recruiter's receiver is ready, and the student's phone opens Tap.
   await expect(r.getByText("Ready. Tap phones with Len.")).toBeVisible();
@@ -419,7 +422,7 @@ test("each demo address shows its own version, and tap stays off the desktop lay
   const student = await (await browser.newContext(wide)).newPage();
   await student.goto("http://localhost:3212/");
   await expect(student.getByRole("link", { name: "Get started" })).toBeVisible();
-  await expect(student.getByRole("link", { name: "I'm a recruiter" })).toHaveCount(0);
+  await expect(student.getByRole("link", { name: "Recruiter sign in" })).toHaveCount(0);
   expect((await student.locator("main .shell").first().boundingBox())!.width).toBeLessThanOrEqual(480);
 
   // Recruiter phone address: phone layout and the tap receiver, even on a wide window.

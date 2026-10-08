@@ -46,7 +46,7 @@ All three are the same server and database.
 
 ## The flow
 
-1. A student makes a profile. Their stated interests are matched to what each recruiter covers and they are placed in that recruiter's virtual line. Scanning a badge QR code joins that recruiter's line directly.
+1. A student makes a profile by uploading a resume, and optionally other files (a transcript, certificates) and links. The form asks only for a name, an email and what they want to talk about; everything else is read from the resume. Uploaded files and linked pages are both used as evidence when resume claims are checked. Their stated interests are matched to what each recruiter covers and they are placed in that recruiter's virtual line. Scanning a badge QR code joins that recruiter's line directly.
 2. The Line screen shows their position and estimated wait, and updates on its own.
 3. The recruiter presses Call next. Tap turns on for both of them: the student's phone opens Tap, and the recruiter's phone is ready to receive.
 4. They bump phones (or both press Tap now) and the student presses Share. The profile and resume go to the recruiter; the recruiter's contact card goes to the student.

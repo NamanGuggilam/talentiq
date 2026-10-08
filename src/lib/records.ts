@@ -46,7 +46,7 @@ export async function summaryInput(connectionId: string, candidate: typeof schem
     latestResume(candidate.id),
     claimsFor(candidate.id),
   ]);
-  const urlOf = new Map(sources.map((s) => [s.id, s.url]));
+  const urlOf = new Map(sources.map((s) => [s.id, s.kind === "file" ? "" : s.url]));
   const evidence = claims
     .filter((c) => !c.hiddenByRecruiterId && c.evidenceSourceId && c.evidenceQuote && (c.status === "verified" || c.status === "partial"))
     .map((c) => ({ text: c.text, quote: c.evidenceQuote!, url: urlOf.get(c.evidenceSourceId!) ?? "" }));

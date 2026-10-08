@@ -9,6 +9,8 @@ export type ClaimStatus = (typeof CLAIM_STATUSES)[number];
 export const LINK_KINDS = ["github", "devpost", "credly", "site"] as const;
 export type LinkKind = (typeof LINK_KINDS)[number];
 export type CandidateLinks = Partial<Record<LinkKind, string>>;
+// Evidence can come from a page the student linked or from a file they uploaded alongside their resume.
+export type SourceKind = LinkKind | "file";
 
 export const events = pgTable("events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -87,6 +89,19 @@ export const resumes = pgTable("resumes", {
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
 }, (t) => [index("resumes_candidate_idx").on(t.candidateId)]);
 
+// Other files a student uploads with their resume: transcripts, certificates, project write-ups.
+// Their text is extracted and used as evidence when resume claims are checked.
+export const documents = pgTable("documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  candidateId: uuid("candidate_id").references(() => candidates.id, { onDelete: "cascade" }).notNull(),
+  fileName: text("file_name").notNull(),
+  mime: text("mime").notNull(),
+  size: integer("size").default(0).notNull(),
+  fileB64: text("file_b64"),
+  extractedText: text("extracted_text").notNull(),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+}, (t) => [index("documents_candidate_idx").on(t.candidateId)]);
+
 export const connections = pgTable("connections", {
   id: uuid("id").primaryKey().defaultRandom(),
   candidateId: uuid("candidate_id").references(() => candidates.id, { onDelete: "cascade" }).notNull(),
@@ -131,7 +146,7 @@ export type ExtractedFacts = {
 export const evidenceSources = pgTable("evidence_sources", {
   id: uuid("id").primaryKey().defaultRandom(),
   candidateId: uuid("candidate_id").references(() => candidates.id, { onDelete: "cascade" }).notNull(),
-  kind: text("kind").$type<LinkKind>().notNull(),
+  kind: text("kind").$type<SourceKind>().notNull(),
   url: text("url").notNull(),
   fetchStatus: text("fetch_status").$type<"pending" | "ok" | "failed" | "blocked">().default("pending").notNull(),
   fetchedAt: timestamp("fetched_at"),

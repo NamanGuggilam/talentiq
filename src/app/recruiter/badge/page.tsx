@@ -24,8 +24,7 @@ export default async function Badge() {
   return (
     <div className="shell pb-10">
       <div className="no-print">
-        <PageHead eyebrow="Hold this up at the booth" title="My badge" actions={<><LivePulse initialCount={count} /><PrintButton /></>}>
-          <p>Students scan the code or tap the NFC tag. They choose whether to share, then appear in your list.</p>
+        <PageHead title="My badge" actions={<><LivePulse initialCount={count} /><PrintButton /></>}>
         </PageHead>
       </div>
 
@@ -38,7 +37,7 @@ export default async function Badge() {
           <div className="px-6 pb-2 pt-6">
             <div className="relative mx-auto aspect-square w-full max-w-[19rem]">
               <div className="h-full w-full [&>svg]:h-full [&>svg]:w-full" role="img" aria-label={`QR code that opens the share page for ${me.name}`} dangerouslySetInnerHTML={{ __html: svg }} />
-              <span className="absolute left-1/2 top-1/2 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-[0_0_0_4px_#fff]" aria-hidden="true"><Mark size={40} live /></span>
+              <span className="absolute left-1/2 top-1/2 grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white shadow-[0_0_0_4px_#fff]" aria-hidden="true"><Mark size={40} /></span>
             </div>
           </div>
           <div className="border-t border-line px-6 py-5 text-center">
@@ -53,19 +52,11 @@ export default async function Badge() {
           <div className="desk:hidden"><TapReceiver initialCount={count} /></div>
           <section className="card card-pad" aria-labelledby="nfc">
             <h2 id="nfc" className="text-xl font-semibold">NFC tag link</h2>
-            <p className="hint mt-1">Write this link to an NFC sticker on the back of your badge. A tap opens the same share page.</p>
+            
             <p className="mt-3 break-all rounded-md border border-line-strong bg-raised px-3 py-2 font-mono text-sm">{link}?m=nfc</p>
             <div className="mt-3 flex flex-wrap gap-2"><CopyButton text={`${link}?m=nfc`} /><NfcWriteButton url={`${link}?m=nfc`} /></div>
           </section>
-          <section className="card card-pad" aria-labelledby="tips">
-            <h2 id="tips" className="text-xl font-semibold">At the booth</h2>
-            <ul className="mt-3 grid gap-2 text-ink-2">
-              <li className="flex gap-3"><span className="eyebrow pt-1">01</span>Keep this page open on a tablet, or print it and clip it to your lanyard.</li>
-              <li className="flex gap-3"><span className="eyebrow pt-1">02</span>The student presses Share on their own phone. Nothing reaches you before that.</li>
-              <li className="flex gap-3"><span className="eyebrow pt-1">03</span>Open them from your list and jot notes while the conversation is fresh.</li>
-            </ul>
-            <p className="hint mt-4">If a badge is lost, a coordinator can replace its link from Admin, which stops the old one working.</p>
-          </section>
+
         </div>
       </div>
     </div>

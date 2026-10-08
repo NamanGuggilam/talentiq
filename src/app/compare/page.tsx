@@ -39,8 +39,7 @@ export default async function Compare({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="shell pb-12">
-      <PageHead eyebrow="In the order you picked them" title="Side by side" actions={<Link href="/dashboard" className="btn">Back to review</Link>}>
-        <p>The same fields for each person. Skills and experience come from approved summaries only.</p>
+      <PageHead title="Side by side" actions={<Link href="/dashboard" className="btn">Back to review</Link>}>
       </PageHead>
 
       {/* One card per person, with the same fields in the same order, so they read straight down on a phone. */}

@@ -10,29 +10,46 @@ import { endAllSessions, getCandidate, safeNext, startSession } from "@/lib/auth
 import { hashSecret, recoveryCode } from "@/lib/crypto";
 import { runEvidencePipeline } from "@/lib/evidence";
 import { track } from "@/lib/metrics";
-import { readProfileForm, readResume, type ProfileErrors } from "@/lib/profile";
+import { parseResume } from "@/lib/ai";
+import { fromParsed, readProfileForm, readUploads, type ProfileErrors, type Upload } from "@/lib/profile";
 import { limitByIp, rateLimit } from "@/lib/rateLimit";
 
 export type ProfileState = { error?: string; ok?: string; errors?: ProfileErrors; values?: Record<string, string>; recoveryCode?: string; next?: string; placed?: { recruiterName: string; reason: string } | null } | null;
 
-export async function createCandidate(_: ProfileState, form: FormData): Promise<ProfileState> {
-  const { data, links, consent, errors, values } = readProfileForm(form);
-  if (!(await limitByIp("signup", 12, 3600))) return { error: "Too many sign-ups from this network. Try again in an hour.", values };
+async function saveFiles(candidateId: string, resume: Upload | null, extras: Upload[]) {
+  if (resume) {
+    await db.delete(schema.resumes).where(eq(schema.resumes.candidateId, candidateId));
+    await db.insert(schema.resumes).values({ candidateId, fileName: resume.fileName, mime: resume.mime, size: resume.size, fileB64: resume.fileB64, extractedText: resume.text });
+  }
+  if (extras.length) {
+    await db.delete(schema.documents).where(eq(schema.documents.candidateId, candidateId));
+    await db.insert(schema.documents).values(extras.map((x) => ({ candidateId, fileName: x.fileName, mime: x.mime, size: x.size, fileB64: x.fileB64, extractedText: x.text })));
+  }
+}
+const interestsFrom = (wants: string) => wants.split(/,|\band\b|\//i).map((s) => s.trim()).filter(Boolean).slice(0, 6);
 
-  let resume = null;
-  try { resume = await readResume(form.get("resume")); } catch (e) { errors.resume = e instanceof Error ? e.message : "We could not read that file."; }
-  if (!data || Object.keys(errors).length) return { error: "Some details need fixing before we can save your profile.", errors, values };
+/** Signup: a resume, optional other files and links, and a name. The rest of the profile is read from the resume. */
+export async function createCandidate(_: ProfileState, form: FormData): Promise<ProfileState> {
+  const { data, links, consent, parsed: sent, errors, values } = readProfileForm(form);
+  if (!(await limitByIp("signup", 12, 3600))) return { error: "Too many sign-ups from this network. Try again in an hour.", values };
+  const { resume, extras } = await readUploads(form, errors);
+  if (!data || Object.keys(errors).length) return { error: "Fix the marked fields.", errors, values };
 
   await dbReady;
   const [taken] = await db.select({ id: schema.candidates.id }).from(schema.candidates).where(eq(schema.candidates.email, data.email));
-  if (taken) return { error: "Some details need fixing before we can save your profile.", errors: { email: "A profile already uses this email. Use “Find my profile” to open it." }, values };
+  if (taken) return { error: "Fix the marked fields.", errors: { email: "A profile already uses this email. Use “I have a profile”." }, values };
 
+  const parsed = sent ?? (resume ? await parseResume(resume.text).catch(() => null) : null);
+  const hasLinks = Object.keys(links).length > 0;
   const code = recoveryCode();
-  const [c] = await db.insert(schema.candidates).values({ ...data, links, scrapeConsentAt: consent && Object.keys(links).length ? new Date() : null, recoveryHash: await hashSecret(code), evidenceState: resume ? "running" : "idle" }).returning();
-  if (resume) await db.insert(schema.resumes).values({ candidateId: c.id, fileName: resume.fileName, mime: resume.mime, size: resume.size, fileB64: resume.fileB64, extractedText: resume.text });
+  const [c] = await db.insert(schema.candidates).values({
+    ...fromParsed(parsed), ...data, technicalInterests: interestsFrom(data.desiredFunction), links,
+    scrapeConsentAt: consent && hasLinks ? new Date() : null, recoveryHash: await hashSecret(code), evidenceState: resume ? "running" : "idle",
+  }).returning();
+  await saveFiles(c.id, resume, extras);
 
   await startSession("candidate", c.id);
-  await track("signup_completed", { payload: { hasResume: !!resume, links: Object.keys(links).length } });
+  await track("signup_completed", { payload: { hasResume: !!resume, files: extras.length, links: Object.keys(links).length } });
   if (resume) after(() => runEvidencePipeline(c.id));
   // Arrived by scanning a badge: they already chose a recruiter. Otherwise, match them to a line by what they want to talk about.
   const next = safeNext(form.get("next"), "/line");
@@ -44,23 +61,20 @@ export async function updateProfile(_: ProfileState, form: FormData): Promise<Pr
   const me = await getCandidate();
   if (!me) redirect("/signup");
   if (!(await rateLimit(`profile:${me.id}`, 30, 3600))) return { error: "Too many changes in a short time. Try again later." };
-  const { data, links, consent, errors, values } = readProfileForm(form);
-
-  let resume = null;
-  try { resume = await readResume(form.get("resume")); } catch (e) { errors.resume = e instanceof Error ? e.message : "We could not read that file."; }
-  if (!data || Object.keys(errors).length) return { error: "Some details need fixing before we can save.", errors, values };
+  const { data, links, consent, parsed: sent, errors, values } = readProfileForm(form);
+  const { resume, extras } = await readUploads(form, errors);
+  if (!data || Object.keys(errors).length) return { error: "Fix the marked fields.", errors, values };
 
   const [taken] = await db.select({ id: schema.candidates.id }).from(schema.candidates).where(and(eq(schema.candidates.email, data.email), ne(schema.candidates.id, me.id)));
-  if (taken) return { error: "Some details need fixing before we can save.", errors: { email: "Another profile already uses this email." }, values };
+  if (taken) return { error: "Fix the marked fields.", errors: { email: "Another profile already uses this email." }, values };
 
   const hasLinks = Object.keys(links).length > 0;
   const linksChanged = JSON.stringify(links) !== JSON.stringify(me.links ?? {}) || (consent && hasLinks) !== !!me.scrapeConsentAt;
-  await db.update(schema.candidates).set({ ...data, links, scrapeConsentAt: consent && hasLinks ? (me.scrapeConsentAt ?? new Date()) : null, updatedAt: new Date() }).where(eq(schema.candidates.id, me.id));
-  if (resume) {
-    await db.delete(schema.resumes).where(eq(schema.resumes.candidateId, me.id));
-    await db.insert(schema.resumes).values({ candidateId: me.id, fileName: resume.fileName, mime: resume.mime, size: resume.size, fileB64: resume.fileB64, extractedText: resume.text });
-  }
-  if (resume || linksChanged) {
+  // A new resume replaces what was read from the old one.
+  const parsed = resume ? sent ?? (await parseResume(resume.text).catch(() => null)) : null;
+  await db.update(schema.candidates).set({ ...fromParsed(parsed), ...data, technicalInterests: interestsFrom(data.desiredFunction), links, scrapeConsentAt: consent && hasLinks ? (me.scrapeConsentAt ?? new Date()) : null, updatedAt: new Date() }).where(eq(schema.candidates.id, me.id));
+  await saveFiles(me.id, resume, extras);
+  if (resume || extras.length || linksChanged) {
     await db.update(schema.candidates).set({ evidenceState: "running" }).where(eq(schema.candidates.id, me.id));
     after(() => runEvidencePipeline(me.id));
   }

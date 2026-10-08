@@ -1,6 +1,7 @@
 import { desc, eq } from "drizzle-orm";
 import { db, dbReady, schema } from "@/db";
 import type { LinkKind } from "@/db/schema";
+import { textToLines } from "@/lib/scrape/sources";
 import { checkClaims, extractClaims, findExtras, type EvidenceInput } from "@/lib/ai";
 import { FetchBlocked } from "@/lib/scrape/safeFetch";
 import { readLink } from "@/lib/scrape/sources";
@@ -37,6 +38,13 @@ export async function runEvidencePipeline(candidateId: string): Promise<void> {
           if (!blocked) console.error("evidence fetch", kind, e);
         }
       }
+    }
+
+    // Files the student uploaded with their resume are read the same way as a linked page.
+    for (const d of await db.select().from(schema.documents).where(eq(schema.documents.candidateId, candidateId))) {
+      const facts = { title: d.fileName, lines: textToLines(d.extractedText) };
+      const [row] = await db.insert(schema.evidenceSources).values({ candidateId, kind: "file", url: d.fileName, fetchStatus: facts.lines.length ? "ok" : "failed", fetchedAt: new Date(), extracted: facts, error: facts.lines.length ? null : "No readable text in that file." }).returning();
+      if (facts.lines.length) evidence.push({ sourceId: row.id, kind: "file", url: d.fileName, facts });
     }
 
     const [checks, extras] = await Promise.all([checkClaims(drafts, evidence), findExtras(resumeText, evidence)]);

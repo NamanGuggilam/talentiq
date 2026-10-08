@@ -23,6 +23,7 @@ const chips = (list: string[] | null | undefined) => (list?.length ? <span class
 export default async function Me({ searchParams }: { searchParams: Promise<{ saved?: string; delete?: string }> }) {
   const me = await requireCandidate();
   const sp = await searchParams;
+  const files = (await db.select({ fileName: schema.documents.fileName }).from(schema.documents).where(eq(schema.documents.candidateId, me.id))).map((f) => f.fileName);
   const [resumes, shared, sources, claims] = await Promise.all([
     db.select({ id: schema.resumes.id, fileName: schema.resumes.fileName, uploadedAt: schema.resumes.uploadedAt }).from(schema.resumes).where(eq(schema.resumes.candidateId, me.id)).orderBy(desc(schema.resumes.uploadedAt)).limit(1),
     db.select({ id: schema.connections.id, recruiterId: schema.connections.recruiterId, at: schema.connections.consentedAt, name: schema.recruiters.name, title: schema.recruiters.title, event: schema.events.name, company: schema.events.company })
@@ -38,7 +39,7 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ sav
   return (
     <div className="shell pb-10">
       <PageHead eyebrow="My profile" title={displayName(me)} actions={<><Link href="/tap" className="btn btn-primary">Tap to share</Link><Link href="/me/edit" className="btn">Edit profile</Link></>}>
-        <p>{[me.major, me.university, me.graduationDate && `graduating ${me.graduationDate}`].filter(Boolean).join(" · ") || "Add your details so recruiters have the full picture."}</p>
+        <p>{me.email}</p>
       </PageHead>
 
       <div className="grid gap-5">
@@ -46,9 +47,9 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ sav
         {sp.delete && <Notice tone="warn" role="alert">Type DELETE in the box to confirm. Nothing has been removed.</Notice>}
 
         <section className="card card-pad" aria-labelledby="shared">
-          <h2 id="shared" className="text-xl font-semibold">Who can see your profile</h2>
+          <h2 id="shared">Who has your profile</h2>
           {shared.length === 0 ? (
-            <p className="mt-2 text-ink-2">No one yet. Scan a recruiter&apos;s badge to join their line, then tap phones at the booth to share.</p>
+            <p className="mt-2 text-ink-2">No one yet.</p>
           ) : (
             <ul className="mt-3 divide-y divide-dashed divide-line">
               {shared.map((s) => (
@@ -62,32 +63,23 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ sav
         </section>
 
         <section className="card card-pad" aria-labelledby="details">
-          <h2 id="details" className="text-xl font-semibold">Your details</h2>
-          <dl className="mt-3">
-            <Row label="Email">{me.email}</Row>
-            <Row label="Phone">{me.phone}</Row>
-            <Row label="Degree">{[me.degreeProgram, me.major].filter(Boolean).join(", ")}</Row>
-            <Row label="University">{me.university}</Row>
-            <Row label="Graduation">{me.graduationDate}</Row>
-            <Row label="GPA">{me.gpa}</Row>
-            <Row label="Looking for">{me.desiredFunction}</Row>
-            <Row label="Interests">{chips(me.technicalInterests)}</Row>
-            <Row label="Locations">{chips(me.preferredLocations)}</Row>
-            <Row label="Work authorization">{me.workAuthorization}</Row>
+          <h2 id="details">Read from your resume</h2>
+          <dl className="mt-2">
+            <Row label="Wants">{me.desiredFunction}</Row>
+            <Row label="Study">{[me.degreeProgram, me.major, me.university, me.graduationDate].filter(Boolean).join(" · ")}</Row>
             <Row label="Skills">{chips(me.skills)}</Row>
-            <Row label="Coursework">{chips(me.coursework)}</Row>
-            <Row label="Projects">{me.projects?.length ? <ul className="list-disc space-y-1 pl-5">{me.projects.map((p) => <li key={p}>{p}</li>)}</ul> : null}</Row>
             <Row label="Resume">{resume ? <a className="link" href={`/api/resume/${resume.id}`}>{resume.fileName}</a> : null}</Row>
+            <Row label="Other files">{files.length ? files.join(", ") : null}</Row>
           </dl>
         </section>
 
         <section className="card card-pad" aria-labelledby="links">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="links" className="text-xl font-semibold">Links and what we read</h2>
+            <h2 id="links">Links</h2>
             {me.scrapeConsentAt ? <Pill tone="ok">Reading allowed</Pill> : <Pill tone="outline">Reading off</Pill>}
           </div>
           {links.length === 0 ? (
-            <p className="mt-2 text-ink-2">You have not added any links. <Link className="link" href="/me/edit#github">Add a link</Link> to back up your resume with your own public work.</p>
+            <p className="mt-2 text-ink-2">None. <Link className="link" href="/me/edit#links">Add one</Link></p>
           ) : (
             <ul className="mt-3 divide-y divide-dashed divide-line">
               {links.map(([kind, url]) => {
@@ -113,14 +105,13 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ sav
                   </li>
                 ))}
               </ul>
-              <p className="border-t border-line px-4 py-3 text-sm text-muted">A difference is shown to the recruiter as a question to ask you, never as a reason to turn you down.</p>
+              
             </details>
           )}
         </section>
 
         <section className="card card-pad border-bad/40" aria-labelledby="delete">
-          <h2 id="delete" className="text-xl font-semibold">Delete my data</h2>
-          <p className="mt-2 text-ink-2">This removes your profile, resume, links, and every recruiter&apos;s notes and summary about you. It cannot be undone.</p>
+          <h2 id="delete">Delete my data</h2>
           <form action={deleteMyData} className="mt-4 flex flex-wrap items-end gap-3">
             <div className="field"><label htmlFor="confirm" className="label">Type DELETE to confirm</label><input id="confirm" name="confirm" autoComplete="off" className="input w-44 font-mono uppercase" /></div>
             <button className="btn btn-danger">Delete everything</button>

@@ -64,14 +64,14 @@ export function TapReceiver({ initialCount, auto = false, bare = false, expectin
           {!auto && <button type="button" className="btn btn-quiet !min-h-12" onClick={() => { setReady(false); setStatus(""); }}>Stop</button>}
         </div>
       )}
-      {ready && <p className="hint mt-2 text-center">{motion ? "Bump the phones together, or both press Tap now at the same moment." : "This phone did not allow motion sensing. Both press Tap now at the same moment."}</p>}
+      {ready && <p className="hint mt-2 text-center">{motion ? "No bump? Both press Tap now together." : "No motion sensor. Both press Tap now together."}</p>}
     </>
   );
   if (bare) return body;
   return (
     <section className="card card-pad" aria-labelledby="tap-h">
       <h2 id="tap-h" className="text-xl font-semibold">Receive by tap</h2>
-      <p className="hint mt-1">The student opens Tap on their phone. Tap the two phones together and their profile and resume land in your list, and they get your contact card.</p>
+      
       {body}
     </section>
   );

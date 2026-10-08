@@ -119,7 +119,7 @@ export function CaptureForm({ connectionId, tags, initial, done, claimQuestions 
 
       <section className="card card-pad grid gap-4" aria-labelledby="notes-h">
         <div className="flex items-center justify-between gap-3">
-          <h2 id="notes-h" className="eyebrow">Conversation notes</h2>
+          <h2 id="notes-h" className="eyebrow">Notes</h2>
           {canDictate && (
             <button type="button" className={`btn btn-sm ${listening ? "btn-ink" : ""}`} aria-pressed={listening} onClick={toggleDictation}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><rect x="4.5" y="1" width="5" height="8" rx="2.5" stroke="currentColor" strokeWidth="1.5" /><path d="M2 7a5 5 0 0 0 10 0M7 12v1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
@@ -127,25 +127,21 @@ export function CaptureForm({ connectionId, tags, initial, done, claimQuestions 
             </button>
           )}
         </div>
-        {prompt("areasOfInterest", "Areas of interest discussed", "Routing engine team, summer internship")}
         <div className="field">
-          <label htmlFor="notes" className="label">Notes</label>
+          <label htmlFor="notes" className="sr-only">Notes</label>
           <textarea id="notes" rows={5} maxLength={4000} value={v.notes} placeholder="What they told you, in their words where you can." onChange={(e) => change("notes", e.target.value)} onBlur={() => void flush()} className="input" aria-describedby="notes-hint" />
-          <p id="notes-hint" className="hint">Write what was said. Hunches such as “probably a strong leader” are kept out of the summary.{listening && <span className="ml-1 font-semibold text-ink">Listening… audio is not stored.</span>}</p>
+          <p id="notes-hint" className="hint">Hunches stay out of the summary.{listening && <span className="ml-1 font-semibold text-ink">Listening… audio is not stored.</span>}</p>
         </div>
-        {prompt("candidateQuestions", "What they asked you", "Asked about relocation and mentorship")}
-        {prompt("followUpQuestions", "Follow-up questions for later", "Ask about the scale of the capstone dataset")}
-        {prompt("recommendedNextSteps", "Recommended next step", "Send internship posting, intro to routing team")}
+        {prompt("recommendedNextSteps", "Next step", "Send internship posting")}
       </section>
 
       <section className="card card-pad" aria-labelledby="rate-h">
-        <h2 id="rate-h" className="eyebrow">Your ratings of this conversation</h2>
-        <p className="hint mt-1">Your judgement, recorded under your name. Optional. The AI never sees these and never produces a score of its own.</p>
+        <h2 id="rate-h" className="eyebrow">Your ratings</h2>
+        <p className="hint mt-1">Yours alone. The AI never sees them.</p>
         <div className="mt-4 grid gap-5">
-          {RATINGS.map(([k, label, help]) => (
+          {RATINGS.map(([k, label]) => (
             <fieldset key={k}>
               <legend className="label">{label}</legend>
-              <p className="hint mb-2">{help}</p>
               <div className="flex items-center gap-3">
                 <div className="scale flex-1">
                   {[1, 2, 3, 4, 5].map((n) => (
@@ -165,7 +161,7 @@ export function CaptureForm({ connectionId, tags, initial, done, claimQuestions 
 
       <div className="flex flex-wrap items-center gap-3">
         <button className="btn btn-primary !min-h-12 !px-5" disabled={finishing} aria-busy={finishing}>{finishing && <span className="spinner" />}{done ? "Save and redraft summary" : "Done, draft the summary"}</button>
-        <p className="hint">Records the capture time and drafts a sourced summary for you to check.</p>
+        
       </div>
     </form>
   );

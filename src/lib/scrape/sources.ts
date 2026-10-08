@@ -1,9 +1,9 @@
 import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
-import type { CandidateLinks, ExtractedFacts, LinkKind } from "@/db/schema";
+import type { CandidateLinks, ExtractedFacts, LinkKind, SourceKind } from "@/db/schema";
 import { FetchBlocked, robotsAllows, safeGet } from "./safeFetch";
 
-export const LINK_LABEL: Record<LinkKind, string> = { github: "GitHub", devpost: "Devpost", credly: "Credly", site: "Portfolio site" };
+export const LINK_LABEL: Record<SourceKind, string> = { github: "GitHub", devpost: "Devpost", credly: "Credly", site: "Web page", file: "Uploaded file" };
 const HOSTS: Record<Exclude<LinkKind, "site">, RegExp> = { github: /^(www\.)?github\.com$/i, devpost: /^(www\.)?devpost\.com$/i, credly: /^(www\.)?credly\.com$/i };
 const MOCK_PATH = /^\/mock\/(github|devpost|credly|site)\/([a-z0-9][a-z0-9-]{0,38})$/i;
 
@@ -111,4 +111,29 @@ async function fetchMock(path: string): Promise<ExtractedFacts> {
 export async function readLink(kind: LinkKind, url: string): Promise<ExtractedFacts> {
   if (url.startsWith("/mock/")) return fetchMock(url);
   return kind === "github" ? fetchGithub(url) : fetchPage(url);
+}
+
+/** Web addresses found in a block of text, such as a resume. */
+export function findLinks(text: string): string[] {
+  const found = text.match(/\b(?:https?:\/\/|www\.)[^\s<>()"']+|\b(?:github\.com|devpost\.com|credly\.com)\/[^\s<>()"']+/gi) ?? [];
+  return [...new Set(found.map((u) => u.replace(/[.,;:]+$/, "")))].slice(0, 6);
+}
+
+/** Sorts a free list of links into the kinds we know how to read. The first of each kind wins. */
+export function classifyLinks(raw: string): CandidateLinks {
+  const links: CandidateLinks = {};
+  for (const line of raw.split(/[\s,]+/).map((s) => s.trim()).filter(Boolean).slice(0, 8)) {
+    const mock = line.match(/\/mock\/(github|devpost|credly|site)\//i)?.[1]?.toLowerCase() as LinkKind | undefined;
+    const kind: LinkKind = mock ?? (/github\.com/i.test(line) ? "github" : /devpost\.com/i.test(line) ? "devpost" : /credly\.com/i.test(line) ? "credly" : "site");
+    if (links[kind]) continue;
+    const r = normalizeLink(kind, line);
+    if (r.ok && r.url) links[kind] = r.url;
+  }
+  return links;
+}
+
+/** An uploaded file's text as evidence lines. */
+export function textToLines(text: string): string[] {
+  const seen = new Set<string>();
+  return text.split(/\n+/).map((l) => l.replace(/^\s*[-•*]\s*/, "").replace(/\s+/g, " ").trim()).filter((l) => l.length >= 6 && l.length <= 260 && !seen.has(l.toLowerCase()) && !!seen.add(l.toLowerCase())).slice(0, 150);
 }
