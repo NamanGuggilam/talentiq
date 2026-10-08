@@ -32,6 +32,29 @@ To try the student side, open `/signup` in a private window, then scan or open t
 | `npm run db:generate` | Creates a migration after editing `src/db/schema.ts` |
 | `npm run lint`, `npm run typecheck` | Static checks |
 
+## The three demo addresses
+
+`npm run dev -- -p 3210` plus `npm run ports` in a second terminal gives:
+
+| Address | Version |
+|---|---|
+| http://localhost:3210 | Recruiter. Desktop layout on a wide window, phone layout on a narrow one |
+| http://localhost:3211 | Recruiter, phone version (includes tap to receive) |
+| http://localhost:3212 | Student, phone version |
+
+All three are the same server and database.
+
+## The flow
+
+1. A student makes a profile. Their stated interests are matched to what each recruiter covers and they are placed in that recruiter's virtual line. Scanning a badge QR code joins that recruiter's line directly.
+2. The Line screen shows their position and estimated wait, and updates on its own.
+3. The recruiter presses Call next. Tap turns on for both of them: the student's phone opens Tap, and the recruiter's phone is ready to receive.
+4. They bump phones (or both press Tap now) and the student presses Share. The profile and resume go to the recruiter; the recruiter's contact card goes to the student.
+5. If the phones are not tapped, Start without tap opens the student's record anyway. A no-show moves to a Missed list. Nobody who was called is dropped.
+6. The recruiter adds notes, tags and ratings, reviews the sourced summary, and the team reviews everyone afterwards.
+
+Tap is in the phone layouts only. A website cannot use phone-to-phone NFC, so the tap is detected with the motion sensor, which needs https on real phones.
+
 ## Configuration
 
 Everything is optional locally. See `.env.example`.

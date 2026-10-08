@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   appleWebApp: { capable: true, title: "TalentIQ", statusBarStyle: "default" },
 };
-export const viewport: Viewport = { themeColor: "#eefaf9", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#f3f7f7", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Signed-in recruiters get the desktop layout on wide screens; everyone else stays in the phone layout.
@@ -22,7 +22,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
       <body className={`flex min-h-full flex-col ${staff ? "is-staff" : ""}`}>
-        <div className="aurora" aria-hidden="true"><i /><i /><i /></div>
         <a href="#main" className="skip-link">Skip to content</a>
         <SiteHeader />
         <main id="main" className="flex-1 pb-28">{children}</main>

@@ -11,7 +11,7 @@ export function ConnectForm({ token, method, already, recruiterName, myName, chi
     return (
       <div role="status">
         <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true">
-          <circle cx="28" cy="28" r="26" fill="var(--accent)" stroke="var(--ink)" strokeWidth="2" style={{ transformOrigin: "center", animation: "pop 520ms var(--ease-spring) both" }} />
+          <circle cx="28" cy="28" r="26" fill="var(--accent)" style={{ transformOrigin: "center", animation: "pop 520ms var(--ease-spring) both" }} />
           <path d="M17 29l8 8 15-17" stroke="var(--accent-ink)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" style={{ strokeDasharray: 40, strokeDashoffset: 40, animation: "draw 420ms var(--ease-out-expo) 320ms forwards" }} />
         </svg>
         <p className="eyebrow mt-4">Shared</p>

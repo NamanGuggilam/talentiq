@@ -31,7 +31,7 @@ export default async function Badge() {
 
       <div className="grid items-start gap-6 desk:grid-cols-[26rem_minmax(0,1fr)]">
         <article className="card mx-auto w-full overflow-hidden !bg-white" aria-label="Badge">
-          <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-[#6fe4da] via-accent to-[#f7a8d3] px-5 py-3 text-accent-ink">
+          <div className="flex items-center justify-between gap-3 bg-accent px-5 py-3 text-accent-ink">
             <span className="flex items-center gap-2 text-lg font-bold">TalentIQ</span>
             <span className="text-sm font-semibold">{event?.company ?? "Recruiter"}</span>
           </div>

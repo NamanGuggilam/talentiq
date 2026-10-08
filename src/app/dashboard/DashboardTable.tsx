@@ -25,12 +25,12 @@ export function DashboardTable({ rows, exportHref, shown, total }: { rows: Row[]
         <a href={exportHref} className="btn btn-sm" download>Export CSV</a>
       </div>
 
-      <ul className="grid gap-2.5 desk:grid-cols-3 desk:gap-3">
+      <ul className="rows">
         {rows.map((r) => {
           const on = picked.includes(r.id);
           const rated = r.ratings.comm != null || r.ratings.tech != null || r.ratings.interest != null;
           return (
-            <li key={r.id} className={`card p-4 transition-shadow ${on ? "!shadow-[0_0_0_2px_var(--accent-deep),var(--glass-shadow)]" : ""}`}>
+            <li key={r.id} className={`p-4 ${on ? "!bg-ok-bg" : ""}`}>
               <div className="flex items-start gap-3">
                 <input type="checkbox" className="check mt-1" checked={on} onChange={() => toggle(r.id)} aria-label={`Select ${r.name}`} />
                 <div className="min-w-0 flex-1">
@@ -51,7 +51,7 @@ export function DashboardTable({ rows, exportHref, shown, total }: { rows: Row[]
       <p role="status" aria-live="polite" className="mt-2 min-h-5 text-sm font-semibold">{msg}</p>
 
       {visible.length > 0 && (
-        <div className="glass sticky bottom-24 z-30 mt-2 grid gap-2 rounded-[var(--radius-lg)] p-3 desk:bottom-6 desk:mx-auto desk:max-w-xl" style={{ animation: "rise 400ms var(--ease-out-expo) both" }}>
+        <div className="glass sticky bottom-20 z-30 mt-3 grid gap-2 rounded-[var(--radius-lg)] p-3 shadow-[0_8px_24px_-12px_rgb(14_42_48/0.35)] desk:bottom-6 desk:mx-auto desk:max-w-xl">
           <p className="text-sm font-semibold">{visible.length} selected</p>
           {canCompare
             ? <Link href={`/compare?ids=${visible.join(",")}`} className="btn btn-primary">Compare {visible.length} side by side</Link>

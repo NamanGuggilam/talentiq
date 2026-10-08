@@ -20,7 +20,7 @@ function ShareCard({ match, onShared }: { match: Match; onShared: (m: Match) => 
       <input type="hidden" name="token" value={match.token} />
       <input type="hidden" name="method" value="tap" />
       <div className="flex items-center gap-3">
-        <span className="grid h-12 w-12 flex-none place-items-center rounded-full bg-gradient-to-b from-[#6fe4da] to-accent text-lg font-bold text-accent-ink" aria-hidden="true">{match.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}</span>
+        <span className="grid h-12 w-12 flex-none place-items-center rounded-full bg-accent text-lg font-bold text-accent-ink" aria-hidden="true">{match.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}</span>
         <div className="min-w-0"><p className="truncate text-lg font-semibold">{match.name}</p><p className="truncate text-sm text-muted">{[match.title, match.company].filter(Boolean).join(" · ")}</p></div>
       </div>
       {state?.error && <p role="alert" className="notice mt-3" data-tone="bad">{state.error}</p>}
@@ -64,9 +64,8 @@ export function TapShare({ resumeName, linkCount, calledBy }: { resumeName: stri
         <div className="relative mx-auto h-24 w-24">
           <span className="burst" /><span className="burst" /><span className="burst" />
           <svg className="relative" width="96" height="96" viewBox="0 0 56 56" fill="none" aria-hidden="true">
-            <circle cx="28" cy="28" r="24" fill="url(#ok)" style={{ transformOrigin: "center", animation: "pop 560ms var(--ease-spring) both" }} />
+            <circle cx="28" cy="28" r="24" fill="#39c5bb" style={{ transformOrigin: "center", animation: "pop 560ms var(--ease-spring) both" }} />
             <path d="M18 29l7 7 14-16" stroke="#052f31" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" style={{ strokeDasharray: 40, strokeDashoffset: 40, animation: "draw 420ms var(--ease-out-expo) 320ms forwards" }} />
-            <defs><linearGradient id="ok" x1="0" y1="0" x2="56" y2="56" gradientUnits="userSpaceOnUse"><stop stopColor="#6fe4da" /><stop offset="1" stopColor="#39c5bb" /></linearGradient></defs>
           </svg>
         </div>
         <h2 className="mt-4 text-2xl font-bold">Sent to {shared.name}</h2>

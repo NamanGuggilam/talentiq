@@ -418,7 +418,7 @@ test("each demo address shows its own version, and tap stays off the desktop lay
   // Student address: no recruiter entry point, phone layout even on a wide window.
   const student = await (await browser.newContext(wide)).newPage();
   await student.goto("http://localhost:3212/");
-  await expect(student.getByRole("link", { name: "I'm a student" })).toBeVisible();
+  await expect(student.getByRole("link", { name: "Get started" })).toBeVisible();
   await expect(student.getByRole("link", { name: "I'm a recruiter" })).toHaveCount(0);
   expect((await student.locator("main .shell").first().boundingBox())!.width).toBeLessThanOrEqual(480);
 

@@ -24,15 +24,15 @@ export async function SiteHeader() {
       : [];
   return (
     <>
-      <header className="no-print sticky top-0 z-40 px-3 pt-3">
-        <div className="glass mx-auto flex min-h-14 max-w-[28.5rem] items-center gap-3 rounded-full py-1.5 pl-4 pr-2 desk:max-w-[72rem]">
-          <Link href={home} className="rounded-full py-1" aria-label="TalentIQ home"><Wordmark size={26} /></Link>
+      <header className="glass no-print sticky top-0 z-40 !border-x-0 !border-t-0">
+        <div className="shell flex min-h-13 items-center gap-3 py-2">
+          <Link href={home} className="rounded-md py-1" aria-label="TalentIQ home"><Wordmark size={24} /></Link>
           {recruiter && <TopNav items={dock} />}
           <span className="pill ml-auto" title="Every candidate in this prototype is made up">Demo data</span>
           {recruiter ? (
-            <form action={logout}><button className="btn btn-sm">Sign out</button></form>
+            <form action={logout}><button className="btn btn-quiet btn-sm">Sign out</button></form>
           ) : candidate ? (
-            <form action={candidateSignOut}><button className="btn btn-sm">Sign out</button></form>
+            <form action={candidateSignOut}><button className="btn btn-quiet btn-sm">Sign out</button></form>
           ) : (
             <Link href={view === "student" ? "/find" : "/login"} className="btn btn-sm">{view === "student" ? "Find my profile" : "Sign in"}</Link>
           )}

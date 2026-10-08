@@ -10,8 +10,8 @@ const BLANK: Values = { firstName: "", lastName: "", preferredName: "", email: "
 function Section({ n, title, children, note }: { n: string; title: string; note?: string; children: React.ReactNode }) {
   return (
     <section className="card card-pad" aria-labelledby={`sec-${n}`}>
-      <h2 id={`sec-${n}`} className="flex items-baseline gap-3 text-xl font-semibold">
-        <span className="eyebrow rounded-sm bg-accent px-1.5 py-0.5 !text-accent-ink">{n}</span>
+      <h2 id={`sec-${n}`} className="flex items-baseline gap-2.5 text-xl font-semibold">
+        <span className="text-base font-semibold tabular-nums text-accent-text">{Number(n)}</span>
         {title}
       </h2>
       {note && <p className="hint mt-1">{note}</p>}

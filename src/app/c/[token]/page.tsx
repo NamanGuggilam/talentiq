@@ -42,7 +42,7 @@ export default async function Connect({ params, searchParams }: { params: Promis
   if (!me) {
     const next = encodeURIComponent(`/c/${token}${sp.m === "nfc" ? "?m=nfc" : ""}`);
     return frame(<>
-      <Mark size={40} live />
+      <Mark size={40} />
       <p className="eyebrow mt-4">Step 1 of 2</p>
       <h1 className="mt-2 text-2xl font-bold">Make a profile to share</h1>
       <p className="mb-4 mt-2 text-ink-2">It takes about two minutes. You will come straight back here to share it.</p>

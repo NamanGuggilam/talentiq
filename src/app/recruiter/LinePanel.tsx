@@ -42,7 +42,7 @@ export async function LinePanel({ me }: { me: Recruiter }) {
       </div>
 
       <div className="mt-4 grid gap-3 desk:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="rounded-[var(--radius-md)] bg-raised p-4">
+        <div className="min-w-0 rounded-[var(--radius-md)] bg-raised p-4">
           <p className="eyebrow">With you now</p>
           {called ? (
             <>
@@ -69,7 +69,7 @@ export async function LinePanel({ me }: { me: Recruiter }) {
           )}
         </div>
 
-        <div className="rounded-[var(--radius-md)] bg-raised p-4">
+        <div className="min-w-0 rounded-[var(--radius-md)] bg-raised p-4">
           <p className="eyebrow">Up next</p>
           {waiting.length === 0 ? <p className="mt-1 text-ink-2">The line is empty. Students join by scanning your badge.</p> : (
             <ol className="mt-1 grid gap-1.5">

@@ -61,11 +61,11 @@ export default async function PeopleIMet({ searchParams }: { searchParams: Promi
       ) : rows.length === 0 ? (
         <Empty title="No one matches those filters"><Link href="/recruiter" className="link">Clear filters</Link></Empty>
       ) : (
-        <ol className="grid gap-2 desk:grid-cols-2 desk:gap-3">
+        <ol className="rows">
           {rows.map(({ conn, c, obs, sum }) => {
             const ratings = [["Comm", obs?.ratingCommunication], ["Tech", obs?.ratingTechnical], ["Interest", obs?.ratingInterest]].filter(([, v]) => v != null) as [string, number][];
             return (
-              <li key={conn.id} className={`card grid gap-3 p-4 transition-colors hover:border-line-strong ${isFresh(conn.consentedAt) ? "row-new" : ""}`}>
+              <li key={conn.id} className={`grid gap-3 p-4 desk:grid-cols-[minmax(0,1fr)_auto] desk:items-center ${isFresh(conn.consentedAt) ? "row-new" : ""}`}>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <Link href={`/recruiter/c/${conn.id}`} className="font-display text-xl font-semibold underline-offset-4 hover:underline">{displayName(c)}</Link>

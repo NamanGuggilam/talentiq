@@ -13,7 +13,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
     <div className="flex min-h-[70vh] items-center py-12">
       <div className="shell">
         <div className="card card-pad rise">
-          <Mark size={44} live />
+          <Mark size={44} />
           <p className="eyebrow mt-5">Recruiters and coordinators</p>
           <h1 className="mt-2 text-3xl font-bold">Sign in</h1>
           <p className="mt-2 text-ink-2">Accounts are created by your recruiting coordinator.</p>

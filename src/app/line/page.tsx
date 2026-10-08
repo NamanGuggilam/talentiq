@@ -30,12 +30,12 @@ export default async function Line({ searchParams }: { searchParams: Promise<{ p
       ) : (
         <ul className="grid gap-3">
           {places.map((p) => (
-            <li key={p.entryId} className={`card p-5 ${p.status === "called" ? "!shadow-[0_0_0_2px_var(--accent-deep),var(--glass-shadow)]" : ""}`}>
+            <li key={p.entryId} className={`card p-5 ${p.status === "called" ? "!border-accent-deep ring-1 ring-accent-deep" : ""}`}>
               <div className="flex items-center gap-4">
                 {p.status === "called" ? (
                   <span className="relative grid h-20 w-20 flex-none place-items-center" aria-hidden="true">
                     <span className="burst" style={{ animationIterationCount: "infinite", animationDuration: "1.8s" }} />
-                    <span className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-b from-[#6fe4da] to-accent text-sm font-bold text-accent-ink">Now</span>
+                    <span className="grid h-16 w-16 place-items-center rounded-full bg-accent text-sm font-bold text-accent-ink">Now</span>
                   </span>
                 ) : (
                   <span className="grid h-20 w-20 flex-none place-items-center rounded-full bg-raised shadow-[inset_0_0_0_3px_var(--accent)]"><span className="text-3xl font-bold tabular-nums" aria-hidden="true">{p.position}</span></span>
@@ -64,9 +64,9 @@ export default async function Line({ searchParams }: { searchParams: Promise<{ p
         <section className="mt-8" aria-labelledby="others">
           <h2 id="others" className="text-xl font-bold">Other recruiters</h2>
           <p className="hint mt-1">You can wait in up to {MAX_LINES_PER_STUDENT} lines at once.</p>
-          <ul className="mt-3 grid gap-2.5">
+          <ul className="rows mt-3">
             {others.map((o) => (
-              <li key={o.id} className="card flex items-center gap-3 p-4">
+              <li key={o.id} className="flex items-center gap-3 p-4">
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold">{o.name}</p>
                   <p className="truncate text-sm text-muted">{o.focus || o.title || "Recruiter"}</p>

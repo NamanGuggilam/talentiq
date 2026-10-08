@@ -84,7 +84,7 @@ export function CaptureForm({ connectionId, tags, initial, done, claimQuestions 
 
   return (
     <form className="grid content-start gap-4" onSubmit={(e) => { e.preventDefault(); startFinish(async () => { if (await flush()) await completeCapture(connectionId); }); }}>
-      <div className="glass sticky top-[4.75rem] z-20 flex items-center justify-between gap-3 rounded-full px-4 py-2">
+      <div className="glass sticky top-[3.75rem] z-20 flex items-center justify-between gap-3 rounded-[var(--radius-md)] px-3 py-2">
         <p className="eyebrow">{done ? "Capture finished · still editable" : "Capture · saves as you type"}</p>
         <p role="status" aria-live="polite" className={`text-xs ${save === "error" ? "text-bad" : "text-muted"}`}>
           {save === "saving" && "Saving…"}{save === "saved" && "Saved"}{save === "error" && error}
