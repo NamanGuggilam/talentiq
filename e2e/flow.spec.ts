@@ -130,6 +130,8 @@ test("check-in through recruiter-approved follow-up status", async ({ browser })
   await shot(r, "evidence-file");
 
   await r.getByLabel("Status", { exact: true }).selectOption("Interview Requested");
+  await r.waitForTimeout(400);
+  await expect(r.getByLabel("Status", { exact: true })).toBeEnabled(); // the change has been saved
   await r.reload();
   await expect(r.getByLabel("Status", { exact: true })).toHaveValue("Interview Requested");
 
@@ -384,9 +386,14 @@ test("a student is matched to a line by interest, called, and tapped in; nobody 
   await r.getByRole("button", { name: "Call next" }).click();
   await expect(r.locator("section[aria-labelledby='line-h'] p.text-3xl")).toHaveText(`Len ${last}`);
 
-  // Calling turns tap on for both of them: the recruiter's receiver is ready, and the student's phone opens Tap.
+  // Calling turns tap on for the recruiter. The student sees "Go!" and stays there until they choose to tap.
   await expect(r.getByText("Ready. Tap phones with Len.")).toBeVisible();
-  await expect(s).toHaveURL(/\/tap$/, { timeout: 15_000 });
+  await expect(s.getByRole("alert").filter({ hasText: "Sam Ortiz is ready for you now." })).toBeVisible({ timeout: 15_000 });
+  await s.waitForTimeout(4000);
+  await expect(s).toHaveURL(/\/line$/);
+  await shot(s, "line-go");
+  await s.getByRole("link", { name: "Tap phones" }).click();
+  await expect(s).toHaveURL(/\/tap$/);
   await expect(s.getByText("Sam Ortiz is ready for you. Tap your phone against theirs.")).toBeVisible();
   await shot(s, "line-called");
   await r.getByRole("button", { name: "Tap now" }).click();
