@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import { refresh } from "next/cache";
 import { QUEUE_ACTIVE } from "@/db/schema";
+import { openSlots } from "@/lib/interviews";
 import { MAX_LINES_PER_STUDENT, autoPlace, closeEntry } from "@/lib/line";
 import { db, dbReady, schema } from "@/db";
 import { endAllSessions, getCandidate, safeNext, startSession } from "@/lib/auth";
@@ -174,4 +175,20 @@ export async function leaveLine(form: FormData) {
     await db.update(schema.queueEntries).set({ status: "left", doneAt: new Date() }).where(and(eq(schema.queueEntries.id, id), eq(schema.queueEntries.candidateId, me.id), inArray(schema.queueEntries.status, [...QUEUE_ACTIVE])));
   }
   refresh();
+}
+
+/** The student picks an interview time after a recruiter sets Interview Requested. */
+export async function bookInterview(form: FormData) {
+  const me = await getCandidate();
+  if (!me) redirect("/signup?next=/me");
+  const id = String(form.get("connectionId") ?? "");
+  const at = new Date(String(form.get("at") ?? ""));
+  if (!/^[0-9a-f-]{36}$/i.test(id) || Number.isNaN(at.getTime())) redirect("/me");
+  const [conn] = await db.select().from(schema.connections).where(and(eq(schema.connections.id, id), eq(schema.connections.candidateId, me.id)));
+  if (!conn || conn.status !== "Interview Requested") redirect("/me");
+  // Only a time that is still open counts, so two students cannot take the same slot.
+  const open = await openSlots(conn.recruiterId);
+  if (!open.some((s) => s.getTime() === at.getTime())) redirect("/me?interview=taken");
+  await db.update(schema.connections).set({ interviewAt: at, updatedAt: new Date() }).where(eq(schema.connections.id, id));
+  redirect("/me?interview=booked");
 }

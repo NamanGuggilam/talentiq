@@ -105,6 +105,7 @@ export async function LinePanel({ me }: { me: Recruiter }) {
           <div className="field"><label htmlFor="minutesPer" className="eyebrow">Minutes per conversation</label><input id="minutesPer" name="minutesPer" type="number" min={1} max={30} defaultValue={me.minutesPer} className="input !min-h-10 w-28 !py-1.5" /></div>
           <div className="field"><label htmlFor="queueMax" className="eyebrow">Most people in line</label><input id="queueMax" name="queueMax" type="number" min={1} max={200} defaultValue={me.queueMax} className="input !min-h-10 w-28 !py-1.5" /></div>
           <div className="field w-full"><label htmlFor="focus" className="eyebrow">What you cover (students are matched to your line on this)</label><input id="focus" name="focus" maxLength={160} defaultValue={me.focus} placeholder="Software engineering, routing, cloud" className="input !min-h-10 !py-1.5" /></div>
+          <div className="field w-full"><label htmlFor="bookingUrl" className="eyebrow">Interview booking link (optional, for example Calendly)</label><input id="bookingUrl" name="bookingUrl" type="url" maxLength={300} defaultValue={me.bookingUrl ?? ""} placeholder="https://calendly.com/you/30min" className="input !min-h-10 !py-1.5" /></div>
           <SubmitButton className="btn btn-sm !min-h-10">Save</SubmitButton>
         </form>
       </details>

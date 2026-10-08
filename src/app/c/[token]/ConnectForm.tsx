@@ -1,10 +1,18 @@
 "use client";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { connect, type ConnectState } from "@/app/actions/candidate";
 
-export function ConnectForm({ token, method, already, recruiterName, myName, children }: { token: string; method: "qr" | "nfc" | "tap"; already: boolean; recruiterName: string; myName: string; children: React.ReactNode }) {
+export function ConnectForm({ token, method, already, recruiterName, myName, autoSend = false, children }: { token: string; method: "qr" | "nfc" | "tap"; already: boolean; recruiterName: string; myName: string; autoSend?: boolean; children: React.ReactNode }) {
   const [state, action, pending] = useActionState<ConnectState, FormData>(connect, null);
+  const form = useRef<HTMLFormElement>(null);
+  const [auto, setAuto] = useState(autoSend && !already);
+  // Arrived by tapping the recruiter's NFC tag: send after a two second pause unless cancelled.
+  useEffect(() => {
+    if (!auto) return;
+    const t = setTimeout(() => form.current?.requestSubmit(), 2000);
+    return () => clearTimeout(t);
+  }, [auto]);
   const done = already || state?.ok;
 
   if (done) {
@@ -24,7 +32,7 @@ export function ConnectForm({ token, method, already, recruiterName, myName, chi
   }
 
   return (
-    <form action={action}>
+    <form ref={form} action={action}>
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="method" value={method} />
       <p className="eyebrow">Share your profile</p>
@@ -33,8 +41,8 @@ export function ConnectForm({ token, method, already, recruiterName, myName, chi
       {children}
       {state?.error && <p role="alert" className="notice mt-4" data-tone="bad">{state.error}</p>}
       <div className="mt-5 grid grid-cols-[1fr_auto] gap-2">
-        <button className="btn btn-primary !min-h-12 !text-base" disabled={pending} aria-busy={pending}>{pending && <span className="spinner" />}Share my profile</button>
-        <Link href="/me" className="btn !min-h-12">Cancel</Link>
+        <button className="btn btn-primary !min-h-12 !text-base" disabled={pending} aria-busy={pending || auto}>{(pending || auto) && <span className="spinner" />}{auto ? `Sending to ${recruiterName.split(" ")[0]}…` : "Share my profile"}</button>
+        {auto ? <button type="button" className="btn !min-h-12" onClick={() => setAuto(false)}>Cancel</button> : <Link href="/me" className="btn !min-h-12">Cancel</Link>}
       </div>
     </form>
   );

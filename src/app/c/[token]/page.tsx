@@ -55,9 +55,10 @@ export default async function Connect({ params, searchParams }: { params: Promis
     db.select({ id: schema.connections.id }).from(schema.connections).where(and(eq(schema.connections.candidateId, me.id), eq(schema.connections.recruiterId, r.id))),
     lineFor(r.id),
   ]);
-  const share = <ConnectForm token={token} method={sp.m === "nfc" ? "nfc" : "qr"} already={!!existing} recruiterName={r.name} myName={displayName(me)}>{who}</ConnectForm>;
-  // Already shared: nothing left to queue for.
-  if (existing) return frame(share);
+  const nfc = sp.m === "nfc";
+  const share = <ConnectForm token={token} method={nfc ? "nfc" : "qr"} already={!!existing} recruiterName={r.name} myName={displayName(me)} autoSend={nfc}>{who}</ConnectForm>;
+  // Already shared, or the phone was tapped on the recruiter's NFC tag: go straight to sharing.
+  if (existing || nfc) return frame(share);
 
   const mine = line.find((e) => e.candidateId === me.id);
   const waiting = line.filter((e) => e.status === "waiting").length;

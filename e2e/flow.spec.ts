@@ -161,9 +161,23 @@ test("check-in through recruiter-approved follow-up status", async ({ browser })
   expect(body).toContain(student.last);
   expect(body).toContain("Interview Requested");
 
+  // Interview Requested gives the student a time to book, and the recruiter sees what they picked.
+  await s.goto("/me");
+  await expect(s.getByText("Interview requested")).toBeVisible();
+  await shot(s, "interview-invite");
+  await s.getByRole("button", { name: "Book" }).click();
+  await expect(s.getByText("Interview booked.")).toBeVisible();
+  const ics = await s.request.get((await s.getByRole("link", { name: "Add to calendar" }).getAttribute("href"))!);
+  expect(await ics.text()).toContain("BEGIN:VEVENT");
+  await r.goto("/recruiter");
+  await expect(r.locator("li", { hasText: student.last }).getByText(/^Interview (Mon|Tue|Wed|Thu|Fri|Sat|Sun)/)).toBeVisible();
+  // NFC tag link: tapping it shares without a button press (already shared here, so it just confirms).
+  await s.goto(badgePath + "?m=nfc");
+  await expect(s.getByRole("heading", { name: /has your profile/ })).toBeVisible();
+
   // The student sees who has their profile, and can delete everything.
   await s.goto("/me");
-  await expect(s.getByText("Dana Lee")).toBeVisible();
+  await expect(s.getByText("Dana Lee").first()).toBeVisible();
   await axe(s, "my profile");
   await shot(s, "me-mobile");
   await s.getByLabel("Type DELETE to confirm").fill("delete");
@@ -273,10 +287,8 @@ test("two phones tap to exchange a profile and a contact card", async ({ browser
     const send = (x: number) => window.dispatchEvent(new DeviceMotionEvent("devicemotion", { acceleration: { x, y: 0, z: 0 } }));
     send(0); send(25);
   });
-  await expect(s.getByRole("button", { name: /Share my profile with Priya/ })).toBeVisible({ timeout: 15_000 });
-  await r.waitForTimeout(500);
-  await expect(r.getByText(/Received/)).toHaveCount(0); // not until the student confirms
-  await s.getByRole("button", { name: /Share my profile with Priya/ }).click();
+  // One recruiter answered, so it sends on its own after a short pause.
+  await expect(s.getByText("Sending to Priya…")).toBeVisible({ timeout: 15_000 });
   await expect(s.getByRole("heading", { name: "Sent to Priya Raman" })).toBeVisible();
   await shot(s, "tap-sent");
   await expect(r.getByText(`Rin ${last}`).first()).toBeVisible({ timeout: 20_000 });
@@ -398,7 +410,6 @@ test("a student is matched to a line by interest, called, and tapped in; nobody 
   await shot(s, "line-called");
   await r.getByRole("button", { name: "Tap now" }).click();
   await s.getByRole("button", { name: "Tap now" }).click();
-  await s.getByRole("button", { name: /Share my profile with Sam/ }).click();
   await expect(s.getByRole("heading", { name: "Sent to Sam Ortiz" })).toBeVisible();
 
   // The recruiter is taken straight to the student's notes; the student is out of the line and in the list.
@@ -485,4 +496,26 @@ test("a browser signed in as both a recruiter and a student shows each side its 
   await page.goto("/recruiter");
   await expect(page.getByRole("heading", { name: "People", level: 1 })).toBeVisible();
   await ctx.close();
+});
+
+test("tapping a recruiter's NFC tag shares the profile with no button press", async ({ browser }) => {
+  const r = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+  const s = await (await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })).newPage();
+  const last = `Nfc${Date.now().toString(36)}`;
+  await signIn(r, "dana.lee@talentiq.demo");
+  await r.goto("/recruiter/badge");
+  const nfcPath = new URL((await r.locator("p.font-mono").filter({ hasText: "/c/" }).first().innerText()).trim());
+  await s.goto("/signup");
+  await s.getByLabel(/^First name/).fill("Mei"); await s.getByLabel(/^Last name/).fill(last); await s.getByLabel("Email", { exact: true }).fill(`mei.${last.toLowerCase()}@campus.example.edu`);
+  await s.getByRole("button", { name: "Create my profile" }).click();
+  await s.getByRole("link", { name: "I saved it, continue" }).click();
+  // The phone opens the tag's link. Nothing else is pressed.
+  await s.goto(nfcPath.pathname + nfcPath.search);
+  await expect(s.getByText("Sending to Dana…")).toBeVisible();
+  await expect(s.getByRole("heading", { name: /Dana Lee has your profile/ })).toBeVisible();
+  await r.goto("/recruiter");
+  await expect(r.locator("li", { hasText: last }).getByText(/NFC tag/)).toBeVisible();
+  await s.goto("/me");
+  await s.getByLabel("Type DELETE to confirm").fill("DELETE");
+  await s.getByRole("button", { name: "Delete everything" }).click();
 });

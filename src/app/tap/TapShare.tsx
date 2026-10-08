@@ -1,22 +1,32 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useCallback, useRef, useState } from "react";
+import { useActionState, useCallback, useEffect, useRef, useState } from "react";
 import { connect, type ConnectState } from "@/app/actions/candidate";
 import { TapStage } from "@/components/TapStage";
-import { requestMotion, useBump } from "@/lib/useBump";
+import { requestMotion, useBump, useMotionReady } from "@/lib/useBump";
 
 type Match = { id: string; token: string; name: string; title: string | null; company: string | null };
 type Phase = "idle" | "armed" | "searching" | "matched" | "none";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-function ShareCard({ match, onShared }: { match: Match; onShared: (m: Match) => void }) {
+/**
+ * One matched recruiter. With `auto`, the profile is sent after a two second pause, so a tap feels like a tap;
+ * Cancel stops it. With several matches the student chooses, and nothing is sent until they do.
+ */
+function ShareCard({ match, auto, onShared, onCancel }: { match: Match; auto: boolean; onShared: (m: Match) => void; onCancel: () => void }) {
+  const form = useRef<HTMLFormElement>(null);
   const [state, action, pending] = useActionState<ConnectState, FormData>(async (prev, fd) => {
     const res = await connect(prev, fd);
     if (res?.ok) onShared(match);
     return res;
   }, null);
+  useEffect(() => {
+    if (!auto) return;
+    const t = setTimeout(() => form.current?.requestSubmit(), 2000);
+    return () => clearTimeout(t);
+  }, [auto]);
   return (
-    <form action={action} className="card p-4">
+    <form ref={form} action={action} className="card p-4">
       <input type="hidden" name="token" value={match.token} />
       <input type="hidden" name="method" value="tap" />
       <div className="flex items-center gap-3">
@@ -24,7 +34,14 @@ function ShareCard({ match, onShared }: { match: Match; onShared: (m: Match) => 
         <div className="min-w-0"><p className="truncate text-lg font-semibold">{match.name}</p><p className="truncate text-sm text-muted">{[match.title, match.company].filter(Boolean).join(" · ")}</p></div>
       </div>
       {state?.error && <p role="alert" className="notice mt-3" data-tone="bad">{state.error}</p>}
-      <button className="btn btn-primary mt-4 w-full !min-h-12" disabled={pending} aria-busy={pending}>{pending && <span className="spinner" />}Share my profile with {match.name.split(" ")[0]}</button>
+      {auto && !state?.error ? (
+        <div className="mt-4 grid grid-cols-[1fr_auto] items-center gap-2">
+          <p role="status" className="flex items-center gap-2 font-display text-lg font-bold uppercase italic"><span className="spinner" />Sending to {match.name.split(" ")[0]}…</p>
+          {!pending && <button type="button" className="btn btn-sm" onClick={onCancel}>Cancel</button>}
+        </div>
+      ) : (
+        <button className="btn btn-primary mt-4 w-full !min-h-12" disabled={pending} aria-busy={pending}>{pending && <span className="spinner" />}Send to {match.name.split(" ")[0]}</button>
+      )}
     </form>
   );
 }
@@ -33,6 +50,9 @@ export function TapShare({ resumeName, linkCount, calledBy }: { resumeName: stri
   // When a recruiter has just called this student, tap starts ready with no extra step.
   const [phase, setPhase] = useState<Phase>(calledBy ? "armed" : "idle");
   const [motion, setMotion] = useState(true);
+  const [auto, setAuto] = useState(true);
+  // Opened already armed (the recruiter just called): check whether this phone can feel a bump yet.
+  useMotionReady(!!calledBy, setMotion);
   const [matches, setMatches] = useState<Match[]>([]);
   const [shared, setShared] = useState<Match | null>(null);
   const busy = useRef(false);
@@ -50,7 +70,7 @@ export function TapShare({ resumeName, linkCount, calledBy }: { resumeName: stri
         await sleep(600);
         data = await (await fetch(`/api/tap?id=${data.id}`, { cache: "no-store" })).json().then((d) => ({ ...d, id: data.id }));
       }
-      if (data.matches?.length) { setMatches(data.matches); setPhase("matched"); navigator.vibrate?.([20, 40, 60]); }
+      if (data.matches?.length) { setMatches(data.matches); setAuto(data.matches.length === 1); setPhase("matched"); navigator.vibrate?.([20, 40, 60]); }
       else setPhase("none");
     } catch { setPhase("none"); }
     busy.current = false;
@@ -97,13 +117,14 @@ export function TapShare({ resumeName, linkCount, calledBy }: { resumeName: stri
         ) : phase !== "matched" && (
           <button type="button" className="btn mt-3 w-full !min-h-12" disabled={phase === "searching"} onClick={async () => { void requestMotion().then(setMotion); await fire(); }}>{phase === "searching" && <span className="spinner" />}Tap now</button>
         )}
-        {phase !== "idle" && phase !== "matched" && <p className="hint mt-2">{motion ? "No bump? Both press Tap now together." : "No motion sensor. Both press Tap now together."}</p>}
+        {phase !== "idle" && phase !== "matched" && !motion && <button type="button" className="btn btn-primary mt-2 w-full !min-h-12" onClick={async () => setMotion(await requestMotion())}>Turn on tap</button>}
+        {phase !== "idle" && phase !== "matched" && <p className="hint mt-2">{motion ? "Knock the two phones together. No luck? Both press Tap now." : "Allow motion so this phone can feel the tap, or both press Tap now."}</p>}
       </div>
 
-      {phase === "matched" && matches.map((m) => <ShareCard key={m.token} match={m} onShared={setShared} />)}
+      {phase === "matched" && matches.map((m) => <ShareCard key={m.token} match={m} auto={auto && matches.length === 1} onShared={setShared} onCancel={() => setAuto(false)} />)}
       {phase === "matched" && <button type="button" className="btn btn-quiet" onClick={() => { setMatches([]); setPhase("armed"); }}>Not them, try again</button>}
 
-      <p className="hint text-center">Nothing is sent until you press Share.</p>
+      
     </div>
   );
 }

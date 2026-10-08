@@ -119,7 +119,7 @@ export async function setStatus(form: FormData) {
   const status = Status.safeParse(form.get("status"));
   const { conn, canEdit } = await loadConnection(me, connectionId);
   if (status.success && canEdit && status.data !== conn.status) {
-    await db.update(schema.connections).set({ status: status.data, statusSetBy: me.id, statusSetAt: new Date(), updatedAt: new Date() }).where(eq(schema.connections.id, connectionId));
+    await db.update(schema.connections).set({ status: status.data, statusSetBy: me.id, statusSetAt: new Date(), updatedAt: new Date(), ...(status.data === "Interview Requested" ? {} : { interviewAt: null }) }).where(eq(schema.connections.id, connectionId));
     await track("status_changed", { connectionId, recruiterId: me.id, payload: { from: conn.status, to: status.data } });
   }
   refresh();
@@ -248,6 +248,6 @@ export async function resolveEntry(form: FormData) {
 export async function saveLineSettings(form: FormData) {
   const me = await requireRecruiter();
   const parsed = z.object({ minutesPer: z.coerce.number().int().min(1).max(30), queueMax: z.coerce.number().int().min(1).max(200) }).safeParse({ minutesPer: form.get("minutesPer"), queueMax: form.get("queueMax") });
-  await db.update(schema.recruiters).set({ queueOpen: form.get("queueOpen") === "on", focus: String(form.get("focus") ?? "").trim().slice(0, 160), ...(parsed.success ? parsed.data : {}) }).where(eq(schema.recruiters.id, me.id));
+  await db.update(schema.recruiters).set({ queueOpen: form.get("queueOpen") === "on", focus: String(form.get("focus") ?? "").trim().slice(0, 160), bookingUrl: /^https:\/\/[^\s]{4,300}$/.test(String(form.get("bookingUrl") ?? "").trim()) ? String(form.get("bookingUrl")).trim() : null, ...(parsed.success ? parsed.data : {}) }).where(eq(schema.recruiters.id, me.id));
   refresh();
 }

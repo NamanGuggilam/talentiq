@@ -7,6 +7,7 @@ import { StatusSelect } from "@/components/StatusSelect";
 import { Empty, PageHead, SummaryPill, displayName, fmtDate } from "@/components/ui";
 import { db, schema } from "@/db";
 import { requireRecruiter } from "@/lib/auth";
+import { fmtSlot } from "@/lib/interviews";
 import { lineSignature } from "@/lib/line";
 
 export const metadata: Metadata = { title: "People I met" };
@@ -50,6 +51,7 @@ export default async function PeopleIMet() {
                   <p className="mt-0.5 truncate text-sm text-ink-2">{[c.major, c.university, c.graduationDate].filter(Boolean).join(" · ") || "Profile details not provided"}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     {!obs?.captureCompletedAt && <span className="pill" data-tone="warn">Notes open</span>}
+                    {conn.status === "Interview Requested" && <span className="pill" data-tone={conn.interviewAt ? "ok" : "outline"}>{conn.interviewAt ? `Interview ${fmtSlot(conn.interviewAt)}` : "Waiting for them to pick a time"}</span>}
                     <SummaryPill state={sum?.status ?? "none"} />
                     {(obs?.tags ?? []).map((t) => <span key={t} className="tag">{t}</span>)}
                     {ratings.length > 0 && <span className="ml-1 text-xs text-muted" title="Your ratings of this conversation">My ratings: {ratings.map(([k, v]) => `${k} ${v}/5`).join(" · ")}</span>}

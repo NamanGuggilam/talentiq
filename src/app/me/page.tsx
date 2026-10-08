@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { deleteMyData } from "@/app/actions/candidate";
+import { bookInterview, deleteMyData } from "@/app/actions/candidate";
+import { SubmitButton } from "@/components/SubmitButton";
+import { fmtSlot, openSlots } from "@/lib/interviews";
 import { ClaimPill, Notice, PageHead, Pill, displayName, fmtDate } from "@/components/ui";
 import { Refresher } from "@/components/Refresher";
 import { db, schema } from "@/db";
@@ -20,19 +22,20 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 const chips = (list: string[] | null | undefined) => (list?.length ? <span className="flex flex-wrap gap-1.5">{list.map((s) => <span key={s} className="tag">{s}</span>)}</span> : null);
 
-export default async function Me({ searchParams }: { searchParams: Promise<{ saved?: string; delete?: string }> }) {
+export default async function Me({ searchParams }: { searchParams: Promise<{ saved?: string; delete?: string; interview?: string }> }) {
   const me = await requireCandidate();
   const sp = await searchParams;
   const files = (await db.select({ fileName: schema.documents.fileName }).from(schema.documents).where(eq(schema.documents.candidateId, me.id))).map((f) => f.fileName);
   const [resumes, shared, sources, claims] = await Promise.all([
     db.select({ id: schema.resumes.id, fileName: schema.resumes.fileName, uploadedAt: schema.resumes.uploadedAt }).from(schema.resumes).where(eq(schema.resumes.candidateId, me.id)).orderBy(desc(schema.resumes.uploadedAt)).limit(1),
-    db.select({ id: schema.connections.id, recruiterId: schema.connections.recruiterId, at: schema.connections.consentedAt, name: schema.recruiters.name, title: schema.recruiters.title, event: schema.events.name, company: schema.events.company })
+    db.select({ id: schema.connections.id, recruiterId: schema.connections.recruiterId, status: schema.connections.status, interviewAt: schema.connections.interviewAt, bookingUrl: schema.recruiters.bookingUrl, at: schema.connections.consentedAt, name: schema.recruiters.name, title: schema.recruiters.title, event: schema.events.name, company: schema.events.company })
       .from(schema.connections).innerJoin(schema.recruiters, eq(schema.connections.recruiterId, schema.recruiters.id)).leftJoin(schema.events, eq(schema.connections.eventId, schema.events.id))
       .where(eq(schema.connections.candidateId, me.id)).orderBy(desc(schema.connections.consentedAt)),
     db.select().from(schema.evidenceSources).where(eq(schema.evidenceSources.candidateId, me.id)),
     db.select().from(schema.claims).where(eq(schema.claims.candidateId, me.id)).orderBy(schema.claims.position),
   ]);
   const resume = resumes[0];
+  const invites = await Promise.all(shared.filter((x) => x.status === "Interview Requested").map(async (x) => ({ ...x, slots: x.interviewAt || x.bookingUrl ? [] : await openSlots(x.recruiterId) })));
   const links = Object.entries(me.links ?? {}) as [keyof typeof LINK_LABEL, string][];
   const checked = claims.filter((c) => c.kind === "resume_claim" && c.status !== "not_checked");
 
@@ -45,6 +48,30 @@ export default async function Me({ searchParams }: { searchParams: Promise<{ sav
       <div className="grid gap-5">
         {sp.saved && <Notice tone="ok">Your changes are saved.</Notice>}
         {sp.delete && <Notice tone="warn" role="alert">Type DELETE in the box to confirm. Nothing has been removed.</Notice>}
+
+        {sp.interview === "booked" && <Notice tone="ok">Interview booked.</Notice>}
+        {sp.interview === "taken" && <Notice tone="bad" role="alert">That time was just taken. Pick another.</Notice>}
+        {invites.map((v) => (
+          <section key={v.id} className="card band !bg-pink-deep p-5 text-white" aria-label={`Interview with ${v.name}`}>
+            <p className="font-display text-sm font-bold uppercase tracking-wider opacity-90">Interview requested</p>
+            <p className="mt-1 font-display text-3xl font-bold uppercase italic leading-none">{v.name}</p>
+            {v.interviewAt ? (
+              <>
+                <p className="mt-3 text-lg font-bold">{fmtSlot(v.interviewAt)} Central · 30 min</p>
+                <a href={`/api/interview/${v.id}`} className="btn mt-3" download>Add to calendar</a>
+              </>
+            ) : v.bookingUrl ? (
+              <a href={v.bookingUrl} target="_blank" rel="noreferrer noopener" className="btn mt-3 !min-h-12">Pick a time</a>
+            ) : (
+              <form action={bookInterview} className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+                <input type="hidden" name="connectionId" value={v.id} />
+                <label htmlFor={`slot-${v.id}`} className="sr-only">Interview time with {v.name}</label>
+                <select id={`slot-${v.id}`} name="at" required className="input !bg-white">{v.slots.map((d) => <option key={d.toISOString()} value={d.toISOString()}>{fmtSlot(d)}</option>)}</select>
+                <SubmitButton className="btn !min-h-12">Book</SubmitButton>
+              </form>
+            )}
+          </section>
+        ))}
 
         <section className="card card-pad" aria-labelledby="shared">
           <h2 id="shared">Who has your profile</h2>

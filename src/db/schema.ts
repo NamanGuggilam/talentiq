@@ -32,6 +32,8 @@ export const recruiters = pgTable("recruiters", {
   connectToken: text("connect_token").notNull().unique(),
   // Topics this recruiter covers, in their own words. Students are matched to a line on this.
   focus: text("focus").default("").notNull(),
+  // Optional outside booking page (for example Calendly). Without it, students pick from built-in slots.
+  bookingUrl: text("booking_url"),
   // Virtual line settings, set by the recruiter.
   queueOpen: boolean("queue_open").default(true).notNull(),
   queueMax: integer("queue_max").default(25).notNull(),
@@ -112,6 +114,8 @@ export const connections = pgTable("connections", {
   status: text("status").$type<RecordStatus>().default("New").notNull(),
   statusSetBy: uuid("status_set_by").references(() => recruiters.id),
   statusSetAt: timestamp("status_set_at"),
+  // The interview time the student picked after the recruiter set Interview Requested.
+  interviewAt: timestamp("interview_at"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (t) => [uniqueIndex("connections_pair_idx").on(t.candidateId, t.recruiterId), index("connections_event_idx").on(t.eventId)]);
 

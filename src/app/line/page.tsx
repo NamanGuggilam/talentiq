@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { and, eq, isNull } from "drizzle-orm";
+import { db, schema } from "@/db";
 import Link from "next/link";
 import { TurnAlert } from "./TurnAlert";
 import { findMyRecruiter, joinLineOf, leaveLine } from "@/app/actions/candidate";
@@ -15,10 +17,12 @@ export default async function Line({ searchParams }: { searchParams: Promise<{ p
   const me = await requireCandidate("/line");
   const [places, others, sp] = await Promise.all([placesFor(me.id), joinableLines(me.id), searchParams]);
   const called = places.filter((p) => p.status === "called");
+  const [invite] = await db.select({ id: schema.connections.id }).from(schema.connections).where(and(eq(schema.connections.candidateId, me.id), eq(schema.connections.status, "Interview Requested"), isNull(schema.connections.interviewAt))).limit(1);
   return (
     <div className="shell pb-10">
       <PageHead title="Your line" />
       <TurnAlert called={called.map((c) => c.recruiterName)} />
+      {invite && <Link href="/me" className="notice mb-3" data-tone="ok">A recruiter wants to interview you. Pick a time →</Link>}
       {sp.placed && sp.placed !== "none" && <div className="mb-3"><Notice tone="ok">{sp.placed}</Notice></div>}
       {sp.placed === "none" && <div className="mb-3"><Notice tone="warn">No open line could be matched right now. Pick a recruiter below, or try again in a minute.</Notice></div>}
       {sp.error && <div className="mb-3"><Notice tone="bad" role="alert">{sp.error}</Notice></div>}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 import { TapStage } from "@/components/TapStage";
-import { requestMotion, useBump } from "@/lib/useBump";
+import { requestMotion, useBump, useMotionReady } from "@/lib/useBump";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -16,6 +16,7 @@ export function TapReceiver({ initialCount, auto = false, bare = false, expectin
   const router = useRouter();
   const [ready, setReady] = useState(auto);
   const [motion, setMotion] = useState(true);
+  useMotionReady(auto, setMotion);
   const [status, setStatus] = useState("");
   const [received, setReceived] = useState<{ id: string; name: string } | null>(null);
   const count = useRef(initialCount);
@@ -25,7 +26,7 @@ export function TapReceiver({ initialCount, auto = false, bare = false, expectin
     if (busy.current) return;
     busy.current = true;
     navigator.vibrate?.(30);
-    setStatus(`Tap sent. Waiting for ${expecting ?? "the student"} to press Share on their phone…`);
+    setStatus(`Tap sent. Waiting for ${expecting ?? "the student"}\u2019s phone…`);
     try {
       const res = await fetch("/api/tap", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ as: "recruiter" }) });
       if (!res.ok) { setStatus((await res.json()).error ?? "Could not send the tap."); busy.current = false; return; }
@@ -64,7 +65,8 @@ export function TapReceiver({ initialCount, auto = false, bare = false, expectin
           {!auto && <button type="button" className="btn btn-quiet !min-h-12" onClick={() => { setReady(false); setStatus(""); }}>Stop</button>}
         </div>
       )}
-      {ready && <p className="hint mt-2 text-center">{motion ? "No bump? Both press Tap now together." : "No motion sensor. Both press Tap now together."}</p>}
+      {ready && !motion && <button type="button" className="btn btn-primary mt-2 w-full !min-h-12" onClick={async () => setMotion(await requestMotion())}>Turn on tap</button>}
+      {ready && <p className="hint mt-2 text-center">{motion ? "Knock the two phones together. No luck? Both press Tap now." : "Allow motion so this phone can feel the tap, or both press Tap now."}</p>}
     </>
   );
   if (bare) return body;

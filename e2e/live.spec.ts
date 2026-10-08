@@ -106,7 +106,6 @@ test("both phones register a physical bump; a closed line refuses new people", a
   await expect(r.getByText("Ready to receive.")).toBeVisible();
   await expect(s.getByText("Ready. Tap your phone against the recruiter's.")).toBeVisible();
   await bump(r); await bump(s);
-  await s.getByRole("button", { name: /Share my profile with Priya/ }).click({ timeout: 20_000 });
   await expect(s.getByRole("heading", { name: "Sent to Priya Raman" })).toBeVisible();
   await expect(r.getByText(`Bo Bump${stamp}`).first()).toBeVisible({ timeout: 25_000 });
   await s.goto("/me");

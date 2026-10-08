@@ -28,9 +28,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="skip-link">Skip to content</a>
         <SiteHeader />
         <main id="main" className="flex-1 pb-28">{children}</main>
-        <footer className="no-print pb-28">
-          <p className="shell text-center text-xs font-semibold text-muted">People decide. TalentIQ never scores anyone.</p>
-        </footer>
       </body>
     </html>
   );
