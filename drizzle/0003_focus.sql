@@ -1,0 +1,1 @@
+ALTER TABLE "recruiters" ADD COLUMN "focus" text DEFAULT '' NOT NULL;

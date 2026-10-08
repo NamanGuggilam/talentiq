@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
-import { extractText } from "@/lib/extractText";
 import { parseResume } from "@/lib/ai";
+import { readResume } from "@/lib/profile";
+import { limitByIp } from "@/lib/rateLimit";
+import { sameOrigin } from "@/lib/http";
 
+export const maxDuration = 60;
+
+/** Reads an uploaded resume and returns suggested form values. Nothing is stored at this step. */
 export async function POST(req: Request) {
-  const file = (await req.formData()).get("resume");
-  if (!(file instanceof File) || file.size === 0) return NextResponse.json({ error: "Choose a resume file." }, { status: 400 });
-  if (file.size > 5_000_000) return NextResponse.json({ error: "File must be under 5 MB." }, { status: 400 });
+  if (!sameOrigin(req)) return NextResponse.json({ error: "Request not allowed." }, { status: 403 });
+  if (!(await limitByIp("parse", 15, 600))) return NextResponse.json({ error: "Too many uploads in a short time. Wait a few minutes and try again." }, { status: 429 });
   try {
-    const text = await extractText(file);
-    return NextResponse.json({ fileName: file.name, text, parsed: parseResume(text) });
+    const resume = await readResume((await req.formData()).get("resume"));
+    if (!resume) return NextResponse.json({ error: "Choose a resume file." }, { status: 400 });
+    return NextResponse.json({ fileName: resume.fileName, parsed: await parseResume(resume.text) });
   } catch (e) {
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Could not read that file." }, { status: 422 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : "We could not read that file." }, { status: 422 });
   }
 }
