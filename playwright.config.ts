@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: "e2e",
   timeout: 180_000,
   workers: 1,
+  // Generous, because on the hosted site some steps wait on a model call.
+  expect: { timeout: 25_000 },
   reporter: "list",
   use: { actionTimeout: 15_000, baseURL: process.env.E2E_URL ?? "http://localhost:3210", viewport: { width: 390, height: 844 }, screenshot: "only-on-failure" },
 });
